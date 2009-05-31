@@ -69,6 +69,7 @@
 #include "historymanager.h"
 #include "languagemanager.h"
 #include "networkaccessmanager.h"
+#include "schemeaccesshandler.h"
 #include "tabwidget.h"
 #include "webview.h"
 
@@ -487,6 +488,9 @@ NetworkAccessManager *BrowserApplication::networkAccessManager()
     if (!s_networkAccessManager) {
         s_networkAccessManager = new NetworkAccessManager();
         s_networkAccessManager->setCookieJar(new CookieJar);
+
+        // Set custom scheme handlers
+        s_networkAccessManager->setSchemeHandler(QLatin1String("file"), new FileAccessHandler(s_networkAccessManager));
     }
     return s_networkAccessManager;
 }

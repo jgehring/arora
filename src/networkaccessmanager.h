@@ -66,6 +66,8 @@
 #include <qnetworkaccessmanager.h>
 #include <qnetworkproxy.h>
 
+class SchemeAccessHandler;
+
 #if QT_VERSION >= 0x040500
 class NetworkProxyFactory : public QNetworkProxyFactory
 {
@@ -92,6 +94,7 @@ signals:
 
 public:
     NetworkAccessManager(QObject *parent = 0);
+    void setSchemeHandler(const QString &scheme, SchemeAccessHandler *handler);
 
 protected:
     QNetworkReply *createRequest(QNetworkAccessManager::Operation op, const QNetworkRequest &request, QIODevice *outgoingData = 0);
@@ -108,6 +111,7 @@ private slots:
 
 private:
     QByteArray m_acceptLanguage;
+    QHash<QString, SchemeAccessHandler *> m_schemeHandlers;
 };
 
 #endif // NETWORKACCESSMANAGER_H
