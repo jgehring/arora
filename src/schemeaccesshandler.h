@@ -63,5 +63,4 @@ private:
     QBuffer buffer;
 };
 
-
 #endif // SCHEMEACCESSHANDLER_H

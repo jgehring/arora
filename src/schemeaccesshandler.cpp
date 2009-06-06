@@ -68,7 +68,6 @@ FileAccessReply::FileAccessReply(const QNetworkRequest &request, QObject *parent
     setOperation(QNetworkAccessManager::GetOperation);
     setRequest(request);
     setUrl(request.url());
-    qDebug(qPrintable(request.url().toString()));
 
     buffer.open(QIODevice::ReadWrite);
     setError(QNetworkReply::NoError, QLatin1String("No Error"));
@@ -103,10 +102,21 @@ static void writeStandardIcon(QString *dest, QStyle::StandardPixmap type, const 
 
 void FileAccessReply::listDirectory()
 {
-    // TODO: Error handling, e.g. if the directory can't be opened
+    QDir dir(url().toLocalFile());
+    if (!dir.exists()) {
+        setError(QNetworkReply::ContentNotFoundError, tr("Error opening: %1: No such file or directory").arg(dir.absolutePath()));
+        emit error(QNetworkReply::ContentNotFoundError);
+        emit finished();
+        return;
+    }
+    if (!dir.isReadable()) {
+        setError(QNetworkReply::ContentAccessDenied, tr("Unable to read %1").arg(dir.absolutePath()));
+        emit error(QNetworkReply::ContentAccessDenied);
+        emit finished();
+        return;
+    }
 
     // Format a html page for the directory contents
-    QDir dir(url().toLocalFile());
     QFile dirlistFile(QLatin1String(":/dirlist.html"));
     if (!dirlistFile.open(QIODevice::ReadOnly))
         return;
