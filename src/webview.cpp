@@ -123,6 +123,12 @@ QUrl WebView::guessUrlFromString(const QString &string)
     if (url.isValid() && !url.scheme().isEmpty() && !url.host().isEmpty())
         return url;
 
+#ifndef Q_WS_WIN
+    // Sorry, windows users...
+    if (trimmedString.startsWith(QLatin1Char('~'))) {
+        trimmedString = QDir::homePath()+trimmedString.mid(1);
+    }
+#endif
     // Absolute files that exists
     if (QDir::isAbsolutePath(trimmedString) && QFile::exists(trimmedString))
         return QUrl::fromLocalFile(trimmedString);
