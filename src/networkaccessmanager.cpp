@@ -127,6 +127,9 @@ NetworkAccessManager::NetworkAccessManager(QObject *parent)
             SLOT(sslErrors(QNetworkReply*, const QList<QSslError>&)));
 #endif
     loadSettings();
+
+    // Register custom scheme handlers
+    setSchemeHandler(QLatin1String("file"), new FileAccessHandler(this));
 }
 
 void NetworkAccessManager::setSchemeHandler(const QString &scheme, SchemeAccessHandler *handler)

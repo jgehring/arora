@@ -59,7 +59,6 @@ QNetworkReply *FileAccessHandler::createRequest(QNetworkAccessManager::Operation
     }
 
     FileAccessReply *reply = new FileAccessReply(request, this);
-    reply->open(QIODevice::ReadOnly);
     return reply;
 }
 
@@ -72,9 +71,11 @@ FileAccessReply::FileAccessReply(const QNetworkRequest &request, QObject *parent
     setUrl(request.url());
 
     buffer.open(QIODevice::ReadWrite);
-    setError(QNetworkReply::NoError, QLatin1String("No Error"));
+    setError(QNetworkReply::NoError, tr("No Error"));
 
     QTimer::singleShot(0, this, SLOT(listDirectory()));
+
+    open(QIODevice::ReadOnly);
 }
 
 FileAccessReply::~FileAccessReply()
@@ -94,11 +95,17 @@ void FileAccessReply::close()
 
 static void writeStandardIcon(QString *dest, QStyle::StandardPixmap type, const QString &target, int size = 32, QWidget *widget = 0)
 {
-    QPixmap icon = qApp->style()->standardIcon(type, 0, widget).pixmap(QSize(size, size));
+    QPixmap pixmap = qApp->style()->standardIcon(type, 0, widget).pixmap(QSize(size, size));
     QBuffer imageBuffer;
     imageBuffer.open(QBuffer::ReadWrite);
-    if (icon.save(&imageBuffer, "PNG")) {
+    if (pixmap.save(&imageBuffer, "PNG")) {
         dest->replace(target, QLatin1String(imageBuffer.buffer().toBase64()));
+    } else {
+        // If an error occured, write a blank pixmap
+        pixmap = QPixmap(size, size);
+        pixmap.fill(Qt::transparent);
+        imageBuffer.buffer().clear();
+        pixmap.save(&imageBuffer, "PNG");
     }
 }
 
@@ -161,7 +168,7 @@ void FileAccessReply::listDirectory()
         link = link.arg(addr).arg(list[i].fileName());
 
         QString size, modified;
-        
+
         if (list[i].fileName() != QLatin1String("..")) {
             if (list[i].isFile())
                 size = tr("%1 KB").arg(QString::number(list[i].size()/1024));
@@ -193,7 +200,6 @@ void FileAccessReply::listDirectory()
         emit readyRead();
     }
 
-    setError(QNetworkReply::NoError, QLatin1String("blubb?"));
     emit finished();
 }
 
