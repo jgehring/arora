@@ -355,7 +355,7 @@ void NetworkAccessManager::sslErrors(QNetworkReply *reply, const QList<QSslError
 
 QNetworkReply *NetworkAccessManager::createRequest(QNetworkAccessManager::Operation op, const QNetworkRequest &request, QIODevice *outgoingData)
 {
-    QNetworkReply *reply;
+    QNetworkReply *reply = NULL;
 
     // Check if there is a valid handler registered for the requested URL scheme
     if (m_schemeHandlers.contains(request.url().scheme())) {
