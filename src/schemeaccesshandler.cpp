@@ -42,6 +42,8 @@ FileAccessHandler::FileAccessHandler(QObject *parent)
 
 QNetworkReply *FileAccessHandler::createRequest(QNetworkAccessManager::Operation op, const QNetworkRequest &request, QIODevice *outgoingData)
 {
+    Q_UNUSED(outgoingData);
+
     switch (op) {
     case QNetworkAccessManager::GetOperation:
         break;
