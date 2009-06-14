@@ -96,6 +96,7 @@ include(locationbar/locationbar.pri)
 include(network/network.pri)
 include(opensearch/opensearch.pri)
 include(qwebplugins/qwebplugins.pri)
+include(shortcuts/shortcuts.pri)
 include(utils/utils.pri)
 
 RESOURCES += \

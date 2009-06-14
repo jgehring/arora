@@ -88,6 +88,7 @@ private slots:
     void chooseFont();
     void chooseFixedFont();
     void chooseAcceptLanguage();
+    void editShortcuts();
 
     void chooseStyleSheet();
     void editAutoFillUser();

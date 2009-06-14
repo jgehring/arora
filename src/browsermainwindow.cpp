@@ -81,6 +81,7 @@
 #include "networkaccessmanager.h"
 #include "opensearchdialog.h"
 #include "settings.h"
+#include "shortcutmanager.h"
 #include "sourceviewer.h"
 #include "tabbar.h"
 #include "tabwidget.h"
@@ -459,25 +460,20 @@ void BrowserMainWindow::setupMenu()
     menuBar()->addMenu(m_fileMenu);
 
     m_fileNewWindowAction = new QAction(m_fileMenu);
-    m_fileNewWindowAction->setShortcut(QKeySequence::New);
+    m_fileNewWindowAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::NewWindow));
     connect(m_fileNewWindowAction, SIGNAL(triggered()),
             this, SLOT(fileNew()));
     m_fileMenu->addAction(m_fileNewWindowAction);
     m_fileMenu->addAction(m_tabWidget->newTabAction());
 
     m_fileOpenFileAction = new QAction(m_fileMenu);
-    m_fileOpenFileAction->setShortcut(QKeySequence::Open);
+    m_fileOpenFileAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::OpenFile));
     connect(m_fileOpenFileAction, SIGNAL(triggered()),
             this, SLOT(fileOpen()));
     m_fileMenu->addAction(m_fileOpenFileAction);
 
     m_fileOpenLocationAction = new QAction(m_fileMenu);
-    // Add the location bar shortcuts familiar to users from other browsers
-    QList<QKeySequence> openLocationShortcuts;
-    openLocationShortcuts.append(QKeySequence(Qt::ControlModifier + Qt::Key_L));
-    openLocationShortcuts.append(QKeySequence(Qt::AltModifier + Qt::Key_O));
-    openLocationShortcuts.append(QKeySequence(Qt::AltModifier + Qt::Key_D));
-    m_fileOpenLocationAction->setShortcuts(openLocationShortcuts);
+    m_fileOpenLocationAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::OpenLocation));
     connect(m_fileOpenLocationAction, SIGNAL(triggered()),
             this, SLOT(selectLineEdit()));
     m_fileMenu->addAction(m_fileOpenLocationAction);

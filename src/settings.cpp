@@ -72,9 +72,10 @@
 #include "cookiejar.h"
 #include "historymanager.h"
 #include "networkaccessmanager.h"
+#include "shortcuteditor.h"
 #include "tabwidget.h"
-#include "webpluginfactory.h"
 #include "webpage.h"
+#include "webpluginfactory.h"
 #include "webview.h"
 
 #include <qdesktopservices.h>
@@ -101,6 +102,7 @@ SettingsDialog::SettingsDialog(QWidget *parent)
     connect(styleSheetBrowseButton, SIGNAL(clicked()), this, SLOT(chooseStyleSheet()));
 
     connect(editAutoFillUserButton, SIGNAL(clicked()), this, SLOT(editAutoFillUser()));
+    connect(shortcutEditorButton, SIGNAL(clicked()), this, SLOT(editShortcuts()));
 
     // As network cache has too many bugs in 4.5.1, do not allow to enable it.
     if (QLatin1String(qVersion()) == QLatin1String("4.5.1"))
@@ -519,3 +521,8 @@ void SettingsDialog::editAutoFillUser()
     dialog.exec();
 }
 
+void SettingsDialog::editShortcuts()
+{
+    ShortcutEditor dialog;
+    dialog.exec();
+}
