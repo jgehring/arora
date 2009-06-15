@@ -22,16 +22,14 @@
 #include "lineedit.h"
 #include "clearbutton.h"
 
-#include <qboxlayout.h>
+#include <qevent.h>
 #include <qlineedit.h>
-#include <qsignalmapper.h>
 #include <qtoolbutton.h>
 
 ShortcutKeySequenceEdit::ShortcutKeySequenceEdit(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent), m_lineEdit(new LineEdit(this))
 {
-    m_lineEdit = new LineEdit(this); 
-    ClearButton *clearButton = new ClearButton(this);
+    ClearButton *clearButton = new ClearButton(m_lineEdit);
     m_lineEdit->addWidget(clearButton, LineEdit::RightSide);
 
     connect(m_lineEdit, SIGNAL(textChanged(const QString &)), this, SIGNAL(sequenceChanged()));
@@ -41,7 +39,6 @@ ShortcutKeySequenceEdit::ShortcutKeySequenceEdit(QWidget *parent)
     layout->addWidget(m_lineEdit);
     layout->setMargin(0);
 
-    m_lineEdit->installEventFilter(this);
     m_lineEdit->setReadOnly(true);
     m_lineEdit->setFocusProxy(this);
     setFocusPolicy(m_lineEdit->focusPolicy());
@@ -59,67 +56,145 @@ void ShortcutKeySequenceEdit::setSequence(const QKeySequence &sequence)
     m_lineEdit->setText(sequence.toString());
 }
 
+void ShortcutKeySequenceEdit::focusInEvent(QFocusEvent *event)
+{
+    QCoreApplication::sendEvent(m_lineEdit, event);
+    m_lineEdit->grabKeyboard();
+    m_lineEdit->selectAll();
+    QWidget::focusInEvent(event);
+}
+
+void ShortcutKeySequenceEdit::focusOutEvent(QFocusEvent *event)
+{
+    QCoreApplication::sendEvent(m_lineEdit, event);
+    m_lineEdit->releaseKeyboard();
+    QWidget::focusOutEvent(event);
+}
+
+void ShortcutKeySequenceEdit::keyPressEvent(QKeyEvent *event)
+{
+    int key = event->key();
+    if (key == Qt::Key_Control || key == Qt::Key_Shift || key == Qt::Key_Meta ||
+            key == Qt::Key_Alt || key == Qt::Key_Super_L || key == Qt::Key_AltGr)
+        return;
+
+    key |= translateModifiers(event->modifiers(), event->text());
+    m_sequence = QKeySequence(key);
+    m_lineEdit->setText(m_sequence.toString());
+    event->accept();
+}
+
+int ShortcutKeySequenceEdit::translateModifiers(Qt::KeyboardModifiers modifiers, const QString &text) const
+{
+    int result = 0;
+    if ((modifiers & Qt::ShiftModifier) && (text.size() == 0 || !text.at(0).isPrint() || text.at(0).isLetter() || text.at(0).isSpace()))
+        result |= Qt::SHIFT;
+    if (modifiers & Qt::ControlModifier)
+        result |= Qt::CTRL;
+    if (modifiers & Qt::MetaModifier)
+        result |= Qt::META;
+    if (modifiers & Qt::AltModifier)
+        result |= Qt::ALT;
+    return result;
+}
+
+
+ShortcutKeySequenceEditContainer::ShortcutKeySequenceEditContainer(const QKeySequence &sequence, QWidget *parent)
+        : QHBoxLayout(NULL), m_edit(new ShortcutKeySequenceEdit(parent))
+{
+    m_edit->setSequence(sequence);
+    addWidget(m_edit);
+
+    QToolButton *addButton = new QToolButton(parent);
+    addButton->setText(tr("+"));
+    addWidget(addButton);
+    QToolButton *removeButton = new QToolButton(parent);
+    removeButton->setText(tr("-"));
+    addWidget(removeButton);
+
+    connect(addButton, SIGNAL(clicked()), this, SIGNAL(add()));
+    connect(removeButton, SIGNAL(clicked()), this, SIGNAL(remove()));
+}
+
+QKeySequence ShortcutKeySequenceEditContainer::sequence() const
+{
+    return m_edit->sequence();
+}
+
 
 ShortcutDialog::ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, QWidget *parent)
-    : QDialog(parent), m_sequences(sequences), m_removeMapper(new QSignalMapper(this))
+    : QDialog(parent)
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(new QLabel(tr("Shortcuts for action <b>%1</b>:").arg(name)));
+    // The layout items before and after the sequence edit widgets are
+    // essential, i.e. they are expected to be present in add() and remove()
+    m_layout = new QVBoxLayout(this);
+    QLabel *label = new QLabel(tr("Shortcuts for action <b>%1</b>:").arg(name));
+    label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    m_layout->addWidget(label);
 
-    for (int i = 0; i < m_sequences.count(); i++)
-        layout->addLayout(makeSequenceEdit(i, m_sequences[i]));
+    for (int i = 0; i < sequences.count(); i++)
+        m_layout->addLayout(makeContainer(sequences[i]));
+    if (sequences.isEmpty())
+        m_layout->addLayout(makeContainer(QKeySequence()));
 
-    layout->addStretch(1);
     QDialogButtonBox *buttons = new QDialogButtonBox(this);
     connect(buttons->addButton(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(accept()));
     connect(buttons->addButton(QDialogButtonBox::Cancel), SIGNAL(clicked()), this, SLOT(reject()));
-    layout->addWidget(buttons);
-
-    connect(m_removeMapper, SIGNAL(mapped(int)), this, SLOT(remove(int)));
+    m_layout->addWidget(buttons);
 
     setWindowTitle(tr("Shortcut Editor"));
 }
 
 QList<QKeySequence> ShortcutDialog::sequences() const
 {
-    return m_sequences;
+    QList<QKeySequence> list;
+    for (int i = 1; i < m_layout->count()-1; i++) {
+        QLayout *layout = m_layout->itemAt(i)->layout();
+        if (layout == NULL)
+            continue;
+        ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer *>(layout);
+        if (container == NULL)
+            continue;
+        list.append(container->sequence());
+    }
+    return list;
 }
 
 void ShortcutDialog::add()
 {
-
+    m_layout->insertLayout(m_layout->count()-1, makeContainer(QKeySequence()));
 }
 
-void ShortcutDialog::remove(int index)
+void ShortcutDialog::remove()
 {
+    ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer *>(sender());
+    if (container == NULL)
+        return;
 
+    m_layout->removeItem(container);
+    while (container->count() > 0) {
+        QWidget *w = container->takeAt(0)->widget();
+        if (w != NULL) {
+            w->hide();
+            w->deleteLater();
+        }
+    }
+    container->deleteLater();
+
+    // Keep a single editor if neccessary
+    if (m_layout->count() < 3) {
+        add();
+    }
+    m_layout->activate();
+    adjustSize();
 }
 
-void ShortcutDialog::changed()
+ShortcutKeySequenceEditContainer *ShortcutDialog::makeContainer(const QKeySequence &sequence)
 {
-
-}
-
-QHBoxLayout *ShortcutDialog::makeSequenceEdit(int index, const QKeySequence &sequence)
-{
-    QHBoxLayout *layout = new QHBoxLayout();
-    ShortcutKeySequenceEdit *edit = new ShortcutKeySequenceEdit(this);
-    edit->setSequence(sequence);
-    layout->addWidget(edit);
-
-    QToolButton *addButton = new QToolButton(this);
-    addButton->setText(tr("+"));
-    layout->addWidget(addButton);
-    QToolButton *removeButton = new QToolButton(this);
-    removeButton->setText(tr("-"));
-    layout->addWidget(removeButton);
-
-    connect(edit, SIGNAL(sequenceChanged()), this, SLOT(changed()));
-    connect(addButton, SIGNAL(clicked()), this, SLOT(add()));
-    m_removeMapper->setMapping(removeButton, index);
-    connect(removeButton, SIGNAL(clicked()), m_removeMapper, SLOT(map()));
-    
-    return layout;
+    ShortcutKeySequenceEditContainer *container = new ShortcutKeySequenceEditContainer(sequence, this);
+    connect(container, SIGNAL(add()), this, SLOT(add()));
+    connect(container, SIGNAL(remove()), this, SLOT(remove()));
+    return container;
 }
 
 
@@ -204,6 +279,7 @@ QModelIndex ShortcutEditorModel::index(int row, int column, const QModelIndex &p
 
 QModelIndex ShortcutEditorModel::parent(const QModelIndex &index) const
 {
+    Q_UNUSED(index);
     return QModelIndex();
 }
 
@@ -214,6 +290,7 @@ int ShortcutEditorModel::rowCount(const QModelIndex &parent) const
 
 int ShortcutEditorModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return 2;
 }
 

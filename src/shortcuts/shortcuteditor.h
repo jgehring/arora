@@ -23,12 +23,12 @@
 #include "shortcutmanager.h"
 
 #include <qabstractitemmodel.h>
+#include <qboxlayout.h>
 #include <qdialog.h>
 #include <qlist.h>
 #include "ui_shortcuteditor.h"
 
 class LineEdit;
-class QSignalMapper;
 
 // This class is loosely based on QtKeySequenceEdit from QtPropertyBrowser
 class ShortcutKeySequenceEdit : public QWidget
@@ -44,9 +44,33 @@ public:
     QKeySequence sequence() const;
     void setSequence(const QKeySequence &sequence);
 
+protected:
+    virtual void focusInEvent(QFocusEvent *event);
+    virtual void focusOutEvent(QFocusEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
+
 private:
+    int translateModifiers(Qt::KeyboardModifiers modifiers, const QString &text) const;
+
     LineEdit *m_lineEdit;
     QKeySequence m_sequence;
+};
+
+class ShortcutKeySequenceEditContainer : public QHBoxLayout
+{
+    Q_OBJECT
+
+signals:
+    void add();
+    void remove();
+
+public:
+    ShortcutKeySequenceEditContainer(const QKeySequence &sequence, QWidget *parent = 0);
+
+    QKeySequence sequence() const;
+
+private:
+    ShortcutKeySequenceEdit *m_edit;
 };
 
 class ShortcutDialog : public QDialog
@@ -60,14 +84,12 @@ public:
 
 private slots:
     void add();
-    void remove(int index);
-    void changed();
+    void remove();
 
 private:
-    QHBoxLayout *makeSequenceEdit(int index, const QKeySequence &sequence);
+    ShortcutKeySequenceEditContainer *makeContainer(const QKeySequence &sequence);
 
-    QList<QKeySequence> m_sequences;
-    QSignalMapper *m_removeMapper;
+    QVBoxLayout *m_layout;
 }; 
 
 class ShortcutEditorModel : public QAbstractItemModel
