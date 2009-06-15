@@ -20,15 +20,94 @@
 #ifndef SHORTCUTEDITOR_H
 #define SHORTCUTEDITOR_H
 
+#include "shortcutmanager.h"
+
+#include <qabstractitemmodel.h>
 #include <qdialog.h>
+#include <qlist.h>
 #include "ui_shortcuteditor.h"
+
+class LineEdit;
+class QSignalMapper;
+
+// This class is loosely based on QtKeySequenceEdit from QtPropertyBrowser
+class ShortcutKeySequenceEdit : public QWidget
+{
+    Q_OBJECT
+
+signals:
+    void sequenceChanged();
+
+public:
+    ShortcutKeySequenceEdit(QWidget *parent = 0);
+
+    QKeySequence sequence() const;
+    void setSequence(const QKeySequence &sequence);
+
+private:
+    LineEdit *m_lineEdit;
+    QKeySequence m_sequence;
+};
+
+class ShortcutDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, QWidget *parent = 0);
+
+    QList<QKeySequence> sequences() const;
+
+private slots:
+    void add();
+    void remove(int index);
+    void changed();
+
+private:
+    QHBoxLayout *makeSequenceEdit(int index, const QKeySequence &sequence);
+
+    QList<QKeySequence> m_sequences;
+    QSignalMapper *m_removeMapper;
+}; 
+
+class ShortcutEditorModel : public QAbstractItemModel
+{
+    Q_OBJECT
+
+public:
+    ShortcutEditorModel(QObject *parent = 0);
+
+    ShortcutManager::Scheme scheme() const;
+    void setScheme(const ShortcutManager::Scheme &scheme);
+
+    ShortcutManager::Action action(const QModelIndex &index) const;
+    QList<QKeySequence> sequences(const QModelIndex &index) const;
+    void setSequences(ShortcutManager::Action action, const QList<QKeySequence> &sequences);
+
+    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    virtual QModelIndex parent(const QModelIndex &index) const;
+    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
+
+private:
+    ShortcutManager::Scheme m_scheme;
+};
 
 class ShortcutEditor : public QDialog, public Ui_ShortcutEditor
 {
     Q_OBJECT
 
-    public:
-        ShortcutEditor(QWidget *parent = 0);
+public:
+    ShortcutEditor(const QString &schemeName = QString(), QWidget *parent = 0);
+
+private slots:
+    void edit(const QModelIndex &index);
+
+private:
+    QString m_schemeName;
+    ShortcutEditorModel *m_model;
 };
 
 #endif // SHORTCUTEDITOR_H

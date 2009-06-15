@@ -1053,7 +1053,7 @@
           <item row="0" column="1">
            <layout class="QGridLayout" name="gridLayout_8">
             <item row="0" column="0">
-             <widget class="QComboBox" name="shurtcutSchemeComboBox">
+             <widget class="QComboBox" name="shortcutSchemeComboBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>

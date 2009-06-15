@@ -25,7 +25,7 @@
 #include <qsettings.h>
 
 bool ShortcutManager::m_loaded = false;
-QHash<QString, QMultiHash<ShortcutManager::Action, QKeySequence> > ShortcutManager::m_schemes;
+QHash<QString, ShortcutManager::Scheme > ShortcutManager::m_schemes;
 QString ShortcutManager::m_currentScheme = QLatin1String("Default");
 QHash<QString, ShortcutManager::Action> ShortcutManager::m_nameToAction;
 
@@ -94,6 +94,45 @@ ShortcutManager::Action ShortcutManager::shortcutAction(const QString &name)
 {
     init();
     return m_nameToAction.value(name, NoAction);
+}
+
+ShortcutManager::Scheme ShortcutManager::scheme(const QString &name)
+{
+    return m_schemes.value(name);
+}
+
+QStringList ShortcutManager::schemes()
+{
+    return m_schemes.keys();
+}
+
+// Returns the name of the new scheme (might be different if it is a default
+// scheme which can't be overridden)
+QString ShortcutManager::setScheme(const QString &name, const Scheme &scheme)
+{
+    if (name != QLatin1String("Default")) {
+        m_schemes.insert(name, scheme);
+        return name;
+    }
+
+    QString newName;
+    int i = 0;
+    do {
+        newName = QString(QLatin1String("%1_%2")).arg(name).arg(i++);
+    } while (!m_schemes.contains(newName));
+
+    m_schemes.insert(newName, scheme);
+    return  newName;
+}
+
+ShortcutManager::Scheme ShortcutManager::currentScheme()
+{
+    return m_schemes.value(m_currentScheme);
+}
+
+QString ShortcutManager::currentSchemeName()
+{
+    return m_currentScheme;
 }
 
 void ShortcutManager::save()

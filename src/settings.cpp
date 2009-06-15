@@ -280,9 +280,16 @@ void SettingsDialog::loadFromSettings()
     openLinksFromAppsIn->setCurrentIndex(settings.value(QLatin1String("openLinksFromAppsIn"), TabWidget::NewSelectedTab).toInt());
     settings.endGroup();
 
+<<<<<<< HEAD
     settings.beginGroup(QLatin1String("autofill"));
     autoFillPasswordFormsCheckBox->setChecked(settings.value(QLatin1String("passwordForms"), true).toBool());
     settings.endGroup();
+=======
+    // Shortcut schemes aren't stored in the settings file directly, but we
+    // can setup the corresponding combo box here
+    shortcutSchemeComboBox->clear();
+    shortcutSchemeComboBox->addItems(ShortcutManager::schemes());
+>>>>>>> Began work on shorcut editor
 }
 
 void SettingsDialog::saveToSettings()
@@ -523,6 +530,6 @@ void SettingsDialog::editAutoFillUser()
 
 void SettingsDialog::editShortcuts()
 {
-    ShortcutEditor dialog;
+    ShortcutEditor dialog(shortcutSchemeComboBox->currentText());
     dialog.exec();
 }

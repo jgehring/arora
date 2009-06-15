@@ -29,11 +29,11 @@ class ShortcutManager : public QObject
     Q_OBJECT
 
 public:
-    // The integer values are not important here, since the actions
-    // are mapped to strings for saving and loading
+    // The integer values are not important here, since the actions are mapped
+    // to strings for saving and loading. However, the first action should be 0
     enum Action {
         NoAction = -1,
-        NewWindow,          // File
+        NewWindow = 0,      // File
         NewTab,
         OpenFile,
         OpenLocation,
@@ -75,11 +75,19 @@ public:
         _NumActions
     };
 
+    typedef QMultiHash<Action, QKeySequence> Scheme;
+
 public:
     static QList<QKeySequence> shortcutsFor(Action action);
     static QList<QKeySequence> shortcutsFor(const QString &name);
     static QString shortcutName(Action action);
     static Action shortcutAction(const QString &name);
+
+    static Scheme scheme(const QString &name);
+    static QStringList schemes();
+    static QString setScheme(const QString &name, const Scheme &scheme);
+    static Scheme currentScheme();
+    static QString currentSchemeName();
 
     static void save();
 
@@ -89,7 +97,7 @@ private:
     static void init();
 
     static bool m_loaded;
-    static QHash<QString, QMultiHash<Action, QKeySequence> > m_schemes;
+    static QHash<QString, Scheme > m_schemes;
     static QString m_currentScheme;
     static QHash<QString, Action> m_nameToAction;
 };

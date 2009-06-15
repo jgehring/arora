@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
-    <height>439</height>
+    <width>348</width>
+    <height>461</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,7 +54,17 @@
     </layout>
    </item>
    <item row="1" column="0" colspan="2">
-    <widget class="QTreeView" name="shortcuts"/>
+    <widget class="QTreeView" name="shortcuts">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="rootIsDecorated">
+      <bool>false</bool>
+     </property>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item row="2" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
