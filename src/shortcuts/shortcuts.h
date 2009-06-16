@@ -17,14 +17,14 @@
  * Boston, MA  02110-1301  USA
  */
 
-#ifndef SHORTCUTMANAGER_H
-#define SHORTCUTMANAGER_H
+#ifndef SHORTCUTS_H
+#define SHORTCUTS_H
 
 #include <qhash.h>
 #include <qkeysequence.h>
 #include <qobject.h>
 
-class ShortcutManager : public QObject
+class Shortcuts : public QObject
 {
     Q_OBJECT
 
@@ -41,8 +41,8 @@ public:
         SaveAs,
         Print,
         PrivateBrowsing,
-        CloseWindow,        // Edit
-        Find,
+        CloseWindow,
+        Find,               // Edit
         FindNext,
         FindPrevious,
         Preferences,
@@ -89,11 +89,13 @@ public:
     static Scheme currentScheme();
     static QString currentSchemeName();
 
+    static void retranslate();
+
     static void save();
 
 private:
     static void load();
-    static void createDefaultScheme();
+    static void createDefaultSchemes();
     static void init();
 
     static bool m_loaded;

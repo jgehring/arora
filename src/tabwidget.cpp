@@ -76,6 +76,7 @@
 #include "opensearchmanager.h"
 #include "tabbar.h"
 #include "toolbarsearch.h"
+#include "shortcuts.h"
 #include "webactionmapper.h"
 #include "webpage.h"
 #include "webview.h"
@@ -134,7 +135,7 @@ TabWidget::TabWidget(QWidget *parent)
 
     // Actions
     m_newTabAction = new QAction(this);
-    m_newTabAction->setShortcuts(QKeySequence::AddTab);
+    m_newTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NewTab));
     connect(m_newTabAction, SIGNAL(triggered()), this, SLOT(newTab()));
 
     m_closeTabAction = new QAction(this);

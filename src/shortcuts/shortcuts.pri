@@ -3,11 +3,11 @@ DEPENDPATH += $$PWD
 
 HEADERS += \
   shortcuteditor.h \
-  shortcutmanager.h
+  shortcuts.h
 
 SOURCES += \
   shortcuteditor.cpp \
-  shortcutmanager.cpp
+  shortcuts.cpp
 
 FORMS += \
   shortcuteditor.ui

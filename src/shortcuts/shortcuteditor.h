@@ -20,7 +20,7 @@
 #ifndef SHORTCUTEDITOR_H
 #define SHORTCUTEDITOR_H
 
-#include "shortcutmanager.h"
+#include "shortcuts.h"
 
 #include <qabstractitemmodel.h>
 #include <qboxlayout.h>
@@ -101,12 +101,12 @@ class ShortcutEditorModel : public QAbstractItemModel
 public:
     ShortcutEditorModel(QObject *parent = 0);
 
-    ShortcutManager::Scheme scheme() const;
-    void setScheme(const ShortcutManager::Scheme &scheme);
+    Shortcuts::Scheme scheme() const;
+    void setScheme(const Shortcuts::Scheme &scheme);
 
-    ShortcutManager::Action action(const QModelIndex &index) const;
+    Shortcuts::Action action(const QModelIndex &index) const;
     QList<QKeySequence> sequences(const QModelIndex &index) const;
-    void setSequences(ShortcutManager::Action action, const QList<QKeySequence> &sequences);
+    void setSequences(Shortcuts::Action action, const QList<QKeySequence> &sequences);
 
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
@@ -116,7 +116,7 @@ public:
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
 private:
-    ShortcutManager::Scheme m_scheme;
+    Shortcuts::Scheme m_scheme;
 };
 
 class ShortcutEditor : public QDialog, public Ui_ShortcutEditor

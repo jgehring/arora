@@ -17,32 +17,32 @@
  * Boston, MA  02110-1301  USA
  */
 
-#include "shortcutmanager.h"
+#include "shortcuts.h"
 
 #include <qcoreapplication.h>
 #include <qdesktopservices.h>
 #include <qstringlist.h>
 #include <qsettings.h>
 
-bool ShortcutManager::m_loaded = false;
-QHash<QString, ShortcutManager::Scheme > ShortcutManager::m_schemes;
-QString ShortcutManager::m_currentScheme = QLatin1String("Default");
-QHash<QString, ShortcutManager::Action> ShortcutManager::m_nameToAction;
+bool Shortcuts::m_loaded = false;
+QHash<QString, Shortcuts::Scheme > Shortcuts::m_schemes;
+QString Shortcuts::m_currentScheme = QLatin1String("Default");
+QHash<QString, Shortcuts::Action> Shortcuts::m_nameToAction;
 
 
-QList<QKeySequence> ShortcutManager::shortcutsFor(Action action)
+QList<QKeySequence> Shortcuts::shortcutsFor(Action action)
 {
     load();
     return m_schemes.value(m_currentScheme).values(action);
 }
 
-QList<QKeySequence> ShortcutManager::shortcutsFor(const QString &name)
+QList<QKeySequence> Shortcuts::shortcutsFor(const QString &name)
 {
     load();
     return shortcutsFor(shortcutAction(name));
 }
 
-QString ShortcutManager::shortcutName(Action action)
+QString Shortcuts::shortcutName(Action action)
 {
     // Forbidden characters: ':'
     switch (action) {
@@ -90,25 +90,25 @@ QString ShortcutManager::shortcutName(Action action)
     return QString();
 }
 
-ShortcutManager::Action ShortcutManager::shortcutAction(const QString &name)
+Shortcuts::Action Shortcuts::shortcutAction(const QString &name)
 {
     init();
     return m_nameToAction.value(name, NoAction);
 }
 
-ShortcutManager::Scheme ShortcutManager::scheme(const QString &name)
+Shortcuts::Scheme Shortcuts::scheme(const QString &name)
 {
     return m_schemes.value(name);
 }
 
-QStringList ShortcutManager::schemes()
+QStringList Shortcuts::schemes()
 {
     return m_schemes.keys();
 }
 
 // Returns the name of the new scheme (might be different if it is a default
 // scheme which can't be overridden)
-QString ShortcutManager::setScheme(const QString &name, const Scheme &scheme)
+QString Shortcuts::setScheme(const QString &name, const Scheme &scheme)
 {
     if (name != QLatin1String("Default")) {
         m_schemes.insert(name, scheme);
@@ -125,17 +125,68 @@ QString ShortcutManager::setScheme(const QString &name, const Scheme &scheme)
     return  newName;
 }
 
-ShortcutManager::Scheme ShortcutManager::currentScheme()
+Shortcuts::Scheme Shortcuts::currentScheme()
 {
     return m_schemes.value(m_currentScheme);
 }
 
-QString ShortcutManager::currentSchemeName()
+QString Shortcuts::currentSchemeName()
 {
     return m_currentScheme;
 }
 
-void ShortcutManager::save()
+// Everybody loves templates...
+void Shortcuts::retranslate()
+{
+    return;
+    // Generate a list of actions that are still translatable, i.e. that
+    // are also present in the default scheme (for the same action).
+    // We can use absolute sequence list indexes here because they won't
+    // change during this function.
+    QHash<QString, QMultiHash<Action, QPair<int, int> > > retranslateSequences;
+    QStringList schemeNames = m_schemes.keys();
+    QLatin1String def = QLatin1String("Default");
+    for (int i = 0; i < schemeNames.count(); i++) {
+        if (schemeNames[i] == def)
+            continue;
+        QMultiHash<Action, QPair<int, int> > temp;
+        for (int j = 0; j < _NumActions; j++) {
+            QList<QKeySequence> sequences = m_schemes[schemeNames[i]].values((Action)j);
+            QList<QKeySequence> defSequences = m_schemes[def].values((Action)j);
+            for (int k = 0; k < sequences.count(); k++) {
+                int l = defSequences.indexOf(sequences[k]);
+                if (l>= 0) {
+                    temp.insert((Action)j, QPair<int, int>(k, l));
+                    break;
+                }
+            }
+        }
+        retranslateSequences.insert(schemeNames[i], temp);
+    }
+
+    // Regenerate the default schemes
+    createDefaultSchemes();
+
+    // Copy retranslated shortcuts from default scheme
+    QHashIterator<QString, QMultiHash<Action, QPair<int, int> > > it(retranslateSequences);
+    while (it.hasNext()) {
+        it.next();
+        QMultiHash<Action, QPair<int, int> > sequences = it.value();
+        // An iterator would probably be faster, but is a inconvenient because
+        // of the QMultiHash.
+        QList<Action> actions = sequences.keys();
+        for (int j = 0; j < actions.count(); j++) {
+            QList<QKeySequence> list = m_schemes[it.key()].values(actions[j]);
+            QList<QKeySequence> defList = m_schemes[def].values(actions[j]);
+            QList<QPair<int, int> > pairs = sequences.values(actions[j]);
+            for (int k = 0; k < pairs.count(); k++) {
+                list[pairs[k].first] = list[pairs[k].second];
+            }
+        }
+    }
+}
+
+void Shortcuts::save()
 {
     QString dir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     QString shortcutsFile = dir + QLatin1String("/shortcuts.conf");
@@ -164,7 +215,7 @@ void ShortcutManager::save()
     }
 }
 
-void ShortcutManager::load()
+void Shortcuts::load()
 {
     if (m_loaded)
         return;
@@ -200,14 +251,14 @@ void ShortcutManager::load()
 
     // Generate default shortcut scheme on first run and after version updates
     if (!m_schemes.contains(QLatin1String("Default")) || (version != QCoreApplication::applicationVersion()))
-        createDefaultScheme();
+        createDefaultSchemes();
     if (!m_schemes.contains(m_currentScheme))
         m_currentScheme = QLatin1String("Default");
 
     m_loaded = true;
 }
 
-void ShortcutManager::createDefaultScheme()
+void Shortcuts::createDefaultSchemes()
 {
     QMultiHash<Action, QKeySequence> scheme;
 
@@ -218,15 +269,22 @@ void ShortcutManager::createDefaultScheme()
     scheme.insert(OpenLocation, QKeySequence(Qt::ControlModifier + Qt::Key_L));
     scheme.insert(OpenLocation, QKeySequence(Qt::AltModifier + Qt::Key_O));
     scheme.insert(OpenLocation, QKeySequence(Qt::AltModifier + Qt::Key_D));
-    // TODO
+    scheme.insert(CloseTab, QKeySequence::Close);
+    scheme.insert(SaveAs, QKeySequence::Save);
+    scheme.insert(Print, QKeySequence::Print);
+    // PrivateBrowsing is empty
+    scheme.insert(CloseWindow, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W));
+
+    scheme.insert(Find, QKeySequence::Find);
+    scheme.insert(FindNext, QKeySequence::FindNext);
+    scheme.insert(FindPrevious, QKeySequence::FindPrevious);
+    scheme.insert(Preferences, tr("Ctrl+,"));
+
+    scheme.insert(PageSource, tr("Ctrl+Alt+U"));
+
+    scheme.insert(WebSearch, QKeySequence(tr("Ctrl+K", "Web Search")));
+    scheme.insert(ClearPrivateData, QKeySequence(tr("Ctrl+Shift+Delete", "Clear Private Data")));
 #if 0
-        OpenFile,
-        OpenLocation,
-        CloseTab,
-        SaveAs,
-        Print,
-        PrivateBrowsing,
-        CloseWindow,        // Edit
         Find,
         FindNext,
         FindPrevious,
@@ -240,7 +298,6 @@ void ShortcutManager::createDefaultScheme()
         ZoomNormal,
         ZoomOut,
         FullScreen,
-        PageSource,
         HistoryBackward,    // History
         HistoryForward,
         HistoryHome,
@@ -262,7 +319,7 @@ void ShortcutManager::createDefaultScheme()
     m_schemes.insert(QLatin1String("Default"), scheme);
 }
 
-void ShortcutManager::init()
+void Shortcuts::init()
 {
     if (!m_nameToAction.isEmpty())
         return;

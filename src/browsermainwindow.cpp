@@ -81,7 +81,7 @@
 #include "networkaccessmanager.h"
 #include "opensearchdialog.h"
 #include "settings.h"
-#include "shortcutmanager.h"
+#include "shortcuts.h"
 #include "sourceviewer.h"
 #include "tabbar.h"
 #include "tabwidget.h"
@@ -460,20 +460,20 @@ void BrowserMainWindow::setupMenu()
     menuBar()->addMenu(m_fileMenu);
 
     m_fileNewWindowAction = new QAction(m_fileMenu);
-    m_fileNewWindowAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::NewWindow));
+    m_fileNewWindowAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NewWindow));
     connect(m_fileNewWindowAction, SIGNAL(triggered()),
             this, SLOT(fileNew()));
     m_fileMenu->addAction(m_fileNewWindowAction);
     m_fileMenu->addAction(m_tabWidget->newTabAction());
 
     m_fileOpenFileAction = new QAction(m_fileMenu);
-    m_fileOpenFileAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::OpenFile));
+    m_fileOpenFileAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::OpenFile));
     connect(m_fileOpenFileAction, SIGNAL(triggered()),
             this, SLOT(fileOpen()));
     m_fileMenu->addAction(m_fileOpenFileAction);
 
     m_fileOpenLocationAction = new QAction(m_fileMenu);
-    m_fileOpenLocationAction->setShortcuts(ShortcutManager::shortcutsFor(ShortcutManager::OpenLocation));
+    m_fileOpenLocationAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::OpenLocation));
     connect(m_fileOpenLocationAction, SIGNAL(triggered()),
             this, SLOT(selectLineEdit()));
     m_fileMenu->addAction(m_fileOpenLocationAction);
@@ -483,7 +483,7 @@ void BrowserMainWindow::setupMenu()
     m_fileMenu->addSeparator();
 
     m_fileSaveAsAction = new QAction(m_fileMenu);
-    m_fileSaveAsAction->setShortcut(QKeySequence::Save);
+    m_fileSaveAsAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::SaveAs));
     connect(m_fileSaveAsAction, SIGNAL(triggered()),
             this, SLOT(fileSaveAs()));
     m_fileMenu->addAction(m_fileSaveAsAction);
@@ -506,13 +506,14 @@ void BrowserMainWindow::setupMenu()
     m_fileMenu->addAction(m_filePrintPreviewAction);
 
     m_filePrintAction = new QAction(m_fileMenu);
-    m_filePrintAction->setShortcut(QKeySequence::Print);
+    m_filePrintAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::Print));
     connect(m_filePrintAction, SIGNAL(triggered()),
             this, SLOT(filePrint()));
     m_fileMenu->addAction(m_filePrintAction);
     m_fileMenu->addSeparator();
 
     m_filePrivateBrowsingAction = new QAction(m_fileMenu);
+    m_filePrivateBrowsingAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PrivateBrowsing));
     connect(m_filePrivateBrowsingAction, SIGNAL(triggered()),
             this, SLOT(privateBrowsing()));
     m_filePrivateBrowsingAction->setCheckable(true);
@@ -521,7 +522,7 @@ void BrowserMainWindow::setupMenu()
 
     m_fileCloseWindow = new QAction(m_fileMenu);
     connect(m_fileCloseWindow, SIGNAL(triggered()), this, SLOT(close()));
-    m_fileCloseWindow->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W));
+    m_fileCloseWindow->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::CloseWindow));
     m_fileMenu->addAction(m_fileCloseWindow);
 
     m_fileQuit = new QAction(m_fileMenu);
@@ -928,6 +929,8 @@ void BrowserMainWindow::viewTextEncoding(QAction *action)
 
 void BrowserMainWindow::retranslate()
 {
+    Shortcuts::retranslate();
+
     m_fileMenu->setTitle(tr("&File"));
     m_fileNewWindowAction->setText(tr("&New Window"));
     m_fileOpenFileAction->setText(tr("&Open File..."));
@@ -964,7 +967,7 @@ void BrowserMainWindow::retranslate()
     m_viewZoomOutAction->setText(tr("Zoom &Out"));
     m_viewZoomTextOnlyAction->setText(tr("Zoom &Text Only"));
     m_viewSourceAction->setText(tr("Page S&ource"));
-    m_viewSourceAction->setShortcut(tr("Ctrl+Alt+U"));
+    m_viewSourceAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PageSource));
     m_viewFullScreenAction->setText(tr("&Full Screen"));
 #if QT_VERSION >= 0x040600 || defined(WEBKIT_TRUNK)
     m_viewTextEncodingAction->setText(tr("Text Encoding"));
@@ -985,7 +988,7 @@ void BrowserMainWindow::retranslate()
 
     m_toolsMenu->setTitle(tr("&Tools"));
     m_toolsWebSearchAction->setText(tr("Web &Search"));
-    m_toolsWebSearchAction->setShortcut(QKeySequence(tr("Ctrl+K", "Web Search")));
+    m_toolsWebSearchAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::WebSearch));
     m_toolsClearPrivateDataAction->setText(tr("&Clear Private Data"));
     m_toolsClearPrivateDataAction->setShortcut(QKeySequence(tr("Ctrl+Shift+Delete", "Clear Private Data")));
     m_toolsEnableInspectorAction->setText(tr("Enable Web &Inspector"));

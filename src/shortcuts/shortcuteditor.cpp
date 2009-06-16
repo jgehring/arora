@@ -221,27 +221,27 @@ ShortcutEditorModel::ShortcutEditorModel(QObject *parent)
 
 }
 
-ShortcutManager::Scheme ShortcutEditorModel::scheme() const
+Shortcuts::Scheme ShortcutEditorModel::scheme() const
 {
     return m_scheme;
 }
 
-void ShortcutEditorModel::setScheme(const ShortcutManager::Scheme &scheme)
+void ShortcutEditorModel::setScheme(const Shortcuts::Scheme &scheme)
 {
     m_scheme = scheme;
 }
 
-ShortcutManager::Action ShortcutEditorModel::action(const QModelIndex &index) const
+Shortcuts::Action ShortcutEditorModel::action(const QModelIndex &index) const
 {
-    return (ShortcutManager::Action)index.row();
+    return (Shortcuts::Action)index.row();
 }
 
 QList<QKeySequence> ShortcutEditorModel::sequences(const QModelIndex &index) const
 {
-    return m_scheme.values((ShortcutManager::Action)index.row());
+    return m_scheme.values((Shortcuts::Action)index.row());
 }
 
-void ShortcutEditorModel::setSequences(ShortcutManager::Action action, const QList<QKeySequence> &sequences)
+void ShortcutEditorModel::setSequences(Shortcuts::Action action, const QList<QKeySequence> &sequences)
 {
     m_scheme.remove(action);
     for (int i = 0; i < sequences.count(); i++)
@@ -255,7 +255,7 @@ QVariant ShortcutEditorModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         if (index.column() == 0) {
-            return ShortcutManager::shortcutName(action(index));
+            return Shortcuts::shortcutName(action(index));
         } else {
             QList<QKeySequence> shortcuts = sequences(index);
             QString tmp;
@@ -302,7 +302,7 @@ QModelIndex ShortcutEditorModel::parent(const QModelIndex &index) const
 
 int ShortcutEditorModel::rowCount(const QModelIndex &parent) const
 {
-    return (!parent.isValid() ? ShortcutManager::_NumActions : 0);
+    return (!parent.isValid() ? Shortcuts::_NumActions : 0);
 }
 
 int ShortcutEditorModel::columnCount(const QModelIndex &parent) const
@@ -320,7 +320,7 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
     m_model = new ShortcutEditorModel(this);
     if (m_schemeName.isEmpty())
         m_schemeName = QLatin1String("Default");
-    m_model->setScheme(ShortcutManager::scheme(m_schemeName));
+    m_model->setScheme(Shortcuts::scheme(m_schemeName));
     shortcuts->setModel(m_model);
 
     connect(shortcuts, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(edit(const QModelIndex &)));
@@ -328,8 +328,8 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
 
 void ShortcutEditor::edit(const QModelIndex &index)
 {
-    ShortcutManager::Action action = m_model->action(index);
-    ShortcutDialog dialog(ShortcutManager::shortcutName(action), m_model->sequences(index));
+    Shortcuts::Action action = m_model->action(index);
+    ShortcutDialog dialog(Shortcuts::shortcutName(action), m_model->sequences(index));
     if (dialog.exec())
         m_model->setSequences(action, dialog.sequences());
 }
