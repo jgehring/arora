@@ -39,6 +39,7 @@ ShortcutKeySequenceEdit::ShortcutKeySequenceEdit(QWidget *parent)
     layout->addWidget(m_lineEdit);
     layout->setMargin(0);
 
+    m_lineEdit->installEventFilter(this);
     m_lineEdit->setReadOnly(true);
     m_lineEdit->setFocusProxy(this);
     setFocusPolicy(m_lineEdit->focusPolicy());
@@ -54,6 +55,22 @@ void ShortcutKeySequenceEdit::setSequence(const QKeySequence &sequence)
 {
     m_sequence = sequence;
     m_lineEdit->setText(sequence.toString());
+}
+
+bool ShortcutKeySequenceEdit::eventFilter(QObject *object, QEvent *event)
+{
+    if (object == m_lineEdit) {
+        // Fetch key presses using eventFilter() in order to fetch the Tab key
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            keyPressEvent(keyEvent);
+            return true;
+        } else {
+            return false;
+        }
+    } else{
+        return QWidget::eventFilter(object, event);
+    }
 }
 
 void ShortcutKeySequenceEdit::focusInEvent(QFocusEvent *event)

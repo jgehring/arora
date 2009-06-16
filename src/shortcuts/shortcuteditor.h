@@ -44,6 +44,8 @@ public:
     QKeySequence sequence() const;
     void setSequence(const QKeySequence &sequence);
 
+    bool eventFilter(QObject *object, QEvent *event);
+
 protected:
     virtual void focusInEvent(QFocusEvent *event);
     virtual void focusOutEvent(QFocusEvent *event);
