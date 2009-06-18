@@ -22,8 +22,6 @@
 #include <qapplication.h>
 #include <qdatetime.h>
 #include <qdir.h>
-#include <qfileinfo.h>
-#include <qpixmap.h>
 #include <qstyle.h>
 #include <qtextstream.h>
 #include <qtimer.h>
