@@ -22,6 +22,7 @@
 #include <qapplication.h>
 #include <qdatetime.h>
 #include <qdir.h>
+#include <qfileiconprovider.h>
 #include <qstyle.h>
 #include <qtextstream.h>
 #include <qtimer.h>
@@ -91,20 +92,24 @@ void FileAccessReply::close()
     buffer.close();
 }
 
-static void writeStandardIcon(QString *dest, QStyle::StandardPixmap type, const QString &target, int size = 32, QWidget *widget = 0)
+static QString cssLinkClass(const QString &name, const QIcon &icon, int size = 32)
 {
-    QPixmap pixmap = qApp->style()->standardIcon(type, 0, widget).pixmap(QSize(size, size));
+    QString data = QLatin1String("a.%1 {\n\
+  padding-left: %2px;\n\
+  background: transparent url(data:image/png;base64,%3) no-repeat center left;\n\
+  font-weight: bold;\n\
+}\n");
+    QPixmap pixmap = icon.pixmap(QSize(size, size));
     QBuffer imageBuffer;
     imageBuffer.open(QBuffer::ReadWrite);
-    if (pixmap.save(&imageBuffer, "PNG")) {
-        dest->replace(target, QLatin1String(imageBuffer.buffer().toBase64()));
-    } else {
+    if (!pixmap.save(&imageBuffer, "PNG")) {
         // If an error occured, write a blank pixmap
         pixmap = QPixmap(size, size);
         pixmap.fill(Qt::transparent);
         imageBuffer.buffer().clear();
         pixmap.save(&imageBuffer, "PNG");
     }
+    return data.arg(name).arg(size+4).arg(QLatin1String(imageBuffer.buffer().toBase64()));
 }
 
 void FileAccessReply::listDirectory()
@@ -130,43 +135,36 @@ void FileAccessReply::listDirectory()
     QString html = QLatin1String(dirlistFile.readAll());
     html = html.arg(dir.absolutePath(), tr("Contents of %1").arg(dir.absolutePath()));
 
+    QFileIconProvider iconProvider;
+    QHash<qint64, bool> existingClasses;
     int iconSize = QWebSettings::globalSettings()->fontSize(QWebSettings::DefaultFontSize);
-    html.replace(QLatin1String("LINK_ICON_PADDING"), QString::number(iconSize+4));
-
-    writeStandardIcon(&html, QStyle::SP_DirIcon, QLatin1String("DIR_ICON_BINARY_DATA_HERE"), iconSize);
-    writeStandardIcon(&html, QStyle::SP_FileIcon, QLatin1String("FILE_ICON_BINARY_DATA_HERE"), iconSize);
-    writeStandardIcon(&html, QStyle::SP_FileDialogToParent, QLatin1String("PARENT_ICON_BINARY_DATA_HERE"), iconSize);
-    writeStandardIcon(&html, QStyle::SP_DirLinkIcon, QLatin1String("DIRLINK_ICON_BINARY_DATA_HERE"), iconSize);
-    writeStandardIcon(&html, QStyle::SP_FileLinkIcon, QLatin1String("FILELINK_ICON_BINARY_DATA_HERE"), iconSize);
-
     QFileInfoList list = dir.entryInfoList(QDir::AllEntries | QDir::Hidden, QDir::Name | QDir::DirsFirst);
-    QString dirlist;
+    QString dirlist, classes;
     for (int i = 0; i < list.count(); i++) {
         // Skip '.' and possibly '..'
         if (list[i].fileName() == QLatin1String(".") || (list[i].fileName() == QLatin1String("..") && dir.isRoot())) {
             continue;
         }
 
+        // TODO: Why reconstruct the QFileInfo object?
         QString path = QFileInfo(dir.absoluteFilePath(list[i].fileName())).canonicalFilePath();
         QString addr = QString::fromUtf8(QUrl::fromLocalFile(path).toEncoded());
         QString link = QString(QLatin1String("<a class=\"%1\" href=\"%2\">%3</a>"));
+        QIcon icon;
         if (list[i].fileName() == QLatin1String("..")) {
-            link = link.arg(QLatin1String("parent"));
-        } else if (list[i].isSymLink()) {
-            if (list[i].isDir()) {
-                link = link.arg(QLatin1String("dirlink"));
-            } else {
-                link = link.arg(QLatin1String("filelink"));
-            }
-        } else if (list[i].isDir()) {
-            link = link.arg(QLatin1String("dir"));
+            icon = qApp->style()->standardIcon(QStyle::SP_FileDialogToParent);
         } else {
-            link = link.arg(QLatin1String("file"));
+            icon = iconProvider.icon(list[i]);
         }
-        link = link.arg(addr).arg(list[i].fileName());
+        QString className = QString(QLatin1String("link_%1")).arg(icon.cacheKey());
+        if (!existingClasses.contains(icon.cacheKey())) {
+            classes += cssLinkClass(className, icon, iconSize);
+            existingClasses.insert(icon.cacheKey(), true);
+        }
+
+        link = link.arg(className).arg(addr).arg(list[i].fileName());
 
         QString size, modified;
-
         if (list[i].fileName() != QLatin1String("..")) {
             if (list[i].isFile())
                 size = tr("%1 KB").arg(QString::number(list[i].size()/1024));
@@ -176,7 +174,8 @@ void FileAccessReply::listDirectory()
         dirlist += QString(QLatin1String("<tr> <td class=\"name\">%1</td> <td class=\"size\">%2</td> <td class=\"modified\">%3</td> </tr>\n")).arg(
                         link, size, modified);
     }
-    html = html.arg(dirlist);
+
+    html = html.arg(classes).arg(dirlist);
 
     // Save result to buffer
     QTextStream stream(&buffer);
