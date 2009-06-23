@@ -135,6 +135,10 @@ void FileAccessReply::listDirectory()
     QString html = QLatin1String(dirlistFile.readAll());
     html = html.arg(dir.absolutePath(), tr("Contents of %1").arg(dir.absolutePath()));
 
+    // Templates for the listing
+    QString link = QLatin1String("<a class=\"%1\" href=\"%2\">%3</a>");
+    QString row = QLatin1String("<tr> <td class=\"name\">%1</td> <td class=\"size\">%2</td> <td class=\"modified\">%3</td> </tr>\n");
+
     QFileIconProvider iconProvider;
     QHash<qint64, bool> existingClasses;
     int iconSize = QWebSettings::globalSettings()->fontSize(QWebSettings::DefaultFontSize);
@@ -146,10 +150,7 @@ void FileAccessReply::listDirectory()
             continue;
         }
 
-        // TODO: Why reconstruct the QFileInfo object?
-        QString path = QFileInfo(dir.absoluteFilePath(list[i].fileName())).canonicalFilePath();
-        QString addr = QString::fromUtf8(QUrl::fromLocalFile(path).toEncoded());
-        QString link = QString(QLatin1String("<a class=\"%1\" href=\"%2\">%3</a>"));
+        // Fetch file icon and generate a corresponding CSS class if neccessary
         QIcon icon;
         if (list[i].fileName() == QLatin1String("..")) {
             icon = qApp->style()->standardIcon(QStyle::SP_FileDialogToParent);
@@ -162,8 +163,7 @@ void FileAccessReply::listDirectory()
             existingClasses.insert(icon.cacheKey(), true);
         }
 
-        link = link.arg(className).arg(addr).arg(list[i].fileName());
-
+        QString addr = QString::fromUtf8(QUrl::fromLocalFile(list[i].canonicalFilePath()).toEncoded());
         QString size, modified;
         if (list[i].fileName() != QLatin1String("..")) {
             if (list[i].isFile())
@@ -171,8 +171,7 @@ void FileAccessReply::listDirectory()
             modified = list[i].lastModified().toString(Qt::SystemLocaleShortDate);
         }
 
-        dirlist += QString(QLatin1String("<tr> <td class=\"name\">%1</td> <td class=\"size\">%2</td> <td class=\"modified\">%3</td> </tr>\n")).arg(
-                        link, size, modified);
+        dirlist += row.arg(link.arg(className).arg(addr).arg(list[i].fileName())).arg(size).arg(modified);
     }
 
     html = html.arg(classes).arg(dirlist);
