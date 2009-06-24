@@ -145,19 +145,29 @@ void FileAccessReply::listDirectory()
     int iconSize = QWebSettings::globalSettings()->fontSize(QWebSettings::DefaultFontSize);
     QFileInfoList list = dir.entryInfoList(QDir::AllEntries | QDir::Hidden, QDir::Name | QDir::DirsFirst);
     QString dirlist, classes;
+
+    // Write link to parent directory first
+    if (!dir.isRoot()) {
+        QIcon icon = qApp->style()->standardIcon(QStyle::SP_FileDialogToParent);
+        QString className = QString(QLatin1String("link_%1")).arg(icon.cacheKey());
+        if (!existingClasses.contains(icon.cacheKey())) {
+            classes += cssLinkClass(className, icon, iconSize);
+            existingClasses.insert(icon.cacheKey(), true);
+        }
+
+        QString addr = QString::fromUtf8(QUrl::fromLocalFile(QFileInfo(dir.absoluteFilePath(QLatin1String(".."))).canonicalFilePath()).toEncoded());
+        QString size, modified; // Empty by intention
+        dirlist += row.arg(link.arg(className).arg(addr).arg(QLatin1String(".."))).arg(size).arg(modified);
+    }
+
     for (int i = 0; i < list.count(); i++) {
-        // Skip '.' and possibly '..'
-        if (list[i].fileName() == QLatin1String(".") || (list[i].fileName() == QLatin1String("..") && dir.isRoot())) {
+        // Skip '.' and '..'
+        if (list[i].fileName() == QLatin1String(".") || list[i].fileName() == QLatin1String("..")) {
             continue;
         }
 
         // Fetch file icon and generate a corresponding CSS class if neccessary
-        QIcon icon;
-        if (list[i].fileName() == QLatin1String("..")) {
-            icon = qApp->style()->standardIcon(QStyle::SP_FileDialogToParent);
-        } else {
-            icon = iconProvider.icon(list[i]);
-        }
+        QIcon icon = iconProvider.icon(list[i]);
         QString className = QString(QLatin1String("link_%1")).arg(icon.cacheKey());
         if (!existingClasses.contains(icon.cacheKey())) {
             classes += cssLinkClass(className, icon, iconSize);
