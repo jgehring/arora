@@ -23,6 +23,7 @@
 #include <qdatetime.h>
 #include <qdir.h>
 #include <qfileiconprovider.h>
+#include <qhash.h>
 #include <qstyle.h>
 #include <qtextstream.h>
 #include <qtimer.h>
