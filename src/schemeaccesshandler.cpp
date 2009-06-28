@@ -20,6 +20,7 @@
 #include "schemeaccesshandler.h"
 
 #include <qapplication.h>
+#include <qcryptographichash.h>
 #include <qdatetime.h>
 #include <qdir.h>
 #include <qfileiconprovider.h>
@@ -93,11 +94,15 @@ void FileAccessReply::close()
     buffer.close();
 }
 
-static QString cssLinkClass(const QString &name, const QIcon &icon, int size = 32)
+static QString cssLinkClass(const QIcon &icon, int size = 32)
 {
-    QString data = QLatin1String("a.%1 {\n\
-  padding-left: %2px;\n\
-  background: transparent url(data:image/png;base64,%3) no-repeat center left;\n\
+    // The CSS class generation is a bit tricky, because QIcon/QPixmap's
+    // cacheKey() returns the different values for the same icons on my Windows
+    // box (tested with XP). Thus, the checksum of the actual text of the CSS class
+    // is used for the class name.
+    QString data = QLatin1String("a.%3 {\n\
+  padding-left: %1px;\n\
+  background: transparent url(data:image/png;base64,%2) no-repeat center left;\n\
   font-weight: bold;\n\
 }\n");
     QPixmap pixmap = icon.pixmap(QSize(size, size));
@@ -110,7 +115,7 @@ static QString cssLinkClass(const QString &name, const QIcon &icon, int size = 3
         imageBuffer.buffer().clear();
         pixmap.save(&imageBuffer, "PNG");
     }
-    return data.arg(name).arg(size+4).arg(QLatin1String(imageBuffer.buffer().toBase64()));
+    return data.arg(size+4).arg(QLatin1String(imageBuffer.buffer().toBase64()));
 }
 
 void FileAccessReply::listDirectory()
@@ -141,7 +146,7 @@ void FileAccessReply::listDirectory()
     QString row = QLatin1String("<tr> <td class=\"name\">%1</td> <td class=\"size\">%2</td> <td class=\"modified\">%3</td> </tr>\n");
 
     QFileIconProvider iconProvider;
-    QHash<qint64, bool> existingClasses;
+    QHash<QString, bool> existingClasses;
     int iconSize = QWebSettings::globalSettings()->fontSize(QWebSettings::DefaultFontSize);
     QFileInfoList list = dir.entryInfoList(QDir::AllEntries | QDir::Hidden, QDir::Name | QDir::DirsFirst);
     QString dirlist, classes;
@@ -149,15 +154,11 @@ void FileAccessReply::listDirectory()
     // Write link to parent directory first
     if (!dir.isRoot()) {
         QIcon icon = qApp->style()->standardIcon(QStyle::SP_FileDialogToParent);
-        QString className = QString(QLatin1String("link_%1")).arg(icon.cacheKey());
-        if (!existingClasses.contains(icon.cacheKey())) {
-            classes += cssLinkClass(className, icon, iconSize);
-            existingClasses.insert(icon.cacheKey(), true);
-        }
+        classes += cssLinkClass(icon, iconSize).arg(QLatin1String("link_parent"));
 
         QString addr = QString::fromUtf8(QUrl::fromLocalFile(QFileInfo(dir.absoluteFilePath(QLatin1String(".."))).canonicalFilePath()).toEncoded());
         QString size, modified; // Empty by intention
-        dirlist += row.arg(link.arg(className).arg(addr).arg(QLatin1String(".."))).arg(size).arg(modified);
+        dirlist += row.arg(link.arg(QLatin1String("link_parent")).arg(addr).arg(QLatin1String(".."))).arg(size).arg(modified);
     }
 
     for (int i = 0; i < list.count(); i++) {
@@ -168,10 +169,12 @@ void FileAccessReply::listDirectory()
 
         // Fetch file icon and generate a corresponding CSS class if neccessary
         QIcon icon = iconProvider.icon(list[i]);
-        QString className = QString(QLatin1String("link_%1")).arg(icon.cacheKey());
-        if (!existingClasses.contains(icon.cacheKey())) {
-            classes += cssLinkClass(className, icon, iconSize);
-            existingClasses.insert(icon.cacheKey(), true);
+        QString cssClass = cssLinkClass(icon, iconSize);
+        QByteArray cssData = cssClass.toLatin1();
+        QString className = QString(QLatin1String("link_%1")).arg(QLatin1String(QCryptographicHash::hash(cssData, QCryptographicHash::Md4).toHex()));
+        if (!existingClasses.contains(className)) {
+            classes += cssClass.arg(className);
+            existingClasses.insert(className, true);
         }
 
         QString addr = QString::fromUtf8(QUrl::fromLocalFile(list[i].canonicalFilePath()).toEncoded());
