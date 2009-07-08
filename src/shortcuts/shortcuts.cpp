@@ -101,28 +101,17 @@ Shortcuts::Scheme Shortcuts::scheme(const QString &name)
     return m_schemes.value(name);
 }
 
-QStringList Shortcuts::schemes()
+// The standard QString operator< is case sensitive
+static bool stringLessThan(const QString &a, const QString &b)
 {
-    return m_schemes.keys();
+    return (a.compare(b, Qt::CaseInsensitive) < 0);
 }
 
-// Returns the name of the new scheme (might be different if it is a default
-// scheme which can't be overridden)
-QString Shortcuts::setScheme(const QString &name, const Scheme &scheme)
+QStringList Shortcuts::schemes()
 {
-    if (name != QLatin1String("Default")) {
-        m_schemes.insert(name, scheme);
-        return name;
-    }
-
-    QString newName;
-    int i = 0;
-    do {
-        newName = QString(QLatin1String("%1_%2")).arg(name).arg(i++);
-    } while (!m_schemes.contains(newName));
-
-    m_schemes.insert(newName, scheme);
-    return  newName;
+    QStringList keys = m_schemes.keys();
+    qSort(keys.begin(), keys.end(), stringLessThan);
+    return keys;
 }
 
 Shortcuts::Scheme Shortcuts::currentScheme()
@@ -133,6 +122,12 @@ Shortcuts::Scheme Shortcuts::currentScheme()
 QString Shortcuts::currentSchemeName()
 {
     return m_currentScheme;
+}
+
+void Shortcuts::setCurrentScheme(const QString &name)
+{
+    if (m_schemes.contains(name))
+        m_currentScheme = name;
 }
 
 // Everybody loves templates...
@@ -190,11 +185,11 @@ void Shortcuts::save()
 {
     QString dir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     QString shortcutsFile = dir + QLatin1String("/shortcuts.conf");
+    qDebug("saving in %s", qPrintable(shortcutsFile));
     QSettings settings(shortcutsFile, QSettings::IniFormat); 
 
     settings.clear();
     settings.setValue(QLatin1String("aroraVersion"), QCoreApplication::applicationVersion());
-    settings.setValue(QLatin1String("currentScheme"), m_currentScheme);
 
     QHashIterator<QString, QMultiHash<Action, QKeySequence> > i(m_schemes);
     while (i.hasNext()) {
@@ -207,12 +202,17 @@ void Shortcuts::save()
         int k = 0;
         while (j.hasNext()) {
             j.next();
-            settings.setValue(QString(QLatin1String("%1:%2")).arg(k).arg(shortcutName(j.key())), j.value());
+            settings.setValue(QString(QLatin1String("%1_%2")).arg(k).arg(shortcutName(j.key())), j.value());
             ++k;
         }
 
         settings.endGroup();
     }
+
+    QSettings appSettings;
+    appSettings.beginGroup(QLatin1String("shortcuts"));
+    appSettings.setValue(QLatin1String("currentScheme"), m_currentScheme);
+    appSettings.endGroup();
 }
 
 void Shortcuts::load()
@@ -227,7 +227,6 @@ void Shortcuts::load()
     QSettings settings(shortcutsFile, QSettings::IniFormat); 
 
     QString version = settings.value(QLatin1String("aroraVersion")).toString();
-    m_currentScheme = settings.value(QLatin1String("currentScheme"), QLatin1String("Default")).toString();
 
     QStringList schemes = settings.childGroups();
     m_schemes.clear();
@@ -238,7 +237,7 @@ void Shortcuts::load()
         QStringList actions = settings.childKeys();
         for (int j = 0; j < actions.count(); j++) {
             // See comment in save() for an explaination
-            QStringList tmp = actions[i].split(QLatin1Char(':'));
+            QStringList tmp = actions[j].split(QLatin1Char('_'));
             if (tmp.count() < 2) {
                 continue;
             }
@@ -248,6 +247,11 @@ void Shortcuts::load()
 
         settings.endGroup();
     }
+
+    QSettings appSettings;
+    appSettings.beginGroup(QLatin1String("shortcuts"));
+    m_currentScheme = appSettings.value(QLatin1String("currentScheme"), QLatin1String("Default")).toString();
+    appSettings.endGroup();
 
     // Generate default shortcut scheme on first run and after version updates
     if (!m_schemes.contains(QLatin1String("Default")) || (version != QCoreApplication::applicationVersion()))
@@ -279,6 +283,18 @@ void Shortcuts::createDefaultSchemes()
     scheme.insert(FindNext, QKeySequence::FindNext);
     scheme.insert(FindPrevious, QKeySequence::FindPrevious);
     scheme.insert(Preferences, tr("Ctrl+,"));
+
+    scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_BraceRight));
+    scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_PageDown));
+    scheme.insert(NextTab, tr("Ctrl+]"));
+    scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_Less));
+    scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_Tab));
+
+    scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_BraceLeft));
+    scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_PageUp));
+    scheme.insert(PreviousTab, tr("Ctrl+["));
+    scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_Greater));
+    scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Tab));
 
     scheme.insert(PageSource, tr("Ctrl+Alt+U"));
 
@@ -327,3 +343,25 @@ void Shortcuts::init()
     for (int i = 0; i < _NumActions; i++)
         m_nameToAction.insert(shortcutName((Action)i), (Action)i);
 }
+
+// Returns the name of the new scheme (might be different if it is a default
+// scheme which can't be overridden)
+QString Shortcuts::saveScheme(const QString &name, const Scheme &scheme)
+{
+    if (name != QLatin1String("Default")) {
+        m_schemes.insert(name, scheme);
+        save();
+        return name;
+    }
+
+    QString newName;
+    int i = 0;
+    do {
+        newName = QString(QLatin1String("%1_%2")).arg(name).arg(i++);
+    } while (!m_schemes.contains(newName));
+
+    m_schemes.insert(newName, scheme);
+    save();
+    return newName;
+}
+

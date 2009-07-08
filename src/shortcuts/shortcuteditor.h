@@ -128,6 +128,9 @@ public:
 
 private slots:
     void edit(const QModelIndex &index);
+    void selectScheme(const QString &schemeName);
+    void saveScheme();
+    void saveSchemeAs();
 
 private:
     QString m_schemeName;

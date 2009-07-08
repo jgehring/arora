@@ -287,6 +287,7 @@ void SettingsDialog::loadFromSettings()
     // can setup the corresponding combo box here
     shortcutSchemeComboBox->clear();
     shortcutSchemeComboBox->addItems(Shortcuts::schemes());
+    shortcutSchemeComboBox->setCurrentIndex(shortcutSchemeComboBox->findText(Shortcuts::currentSchemeName()));
 }
 
 void SettingsDialog::saveToSettings()
@@ -427,6 +428,10 @@ void SettingsDialog::saveToSettings()
     settings.beginGroup(QLatin1String("autofill"));
     settings.setValue(QLatin1String("passwordForms"), autoFillPasswordFormsCheckBox->isChecked());
     settings.endGroup();
+
+    // Shortcut scheme
+    Shortcuts::setCurrentScheme(shortcutSchemeComboBox->currentText());
+    Shortcuts::save();
 
     BrowserApplication::instance()->loadSettings();
     BrowserApplication::networkAccessManager()->loadSettings();

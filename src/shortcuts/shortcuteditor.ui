@@ -31,15 +31,10 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <item>
-        <property name="text">
-         <string>Default</string>
-        </property>
-       </item>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QPushButton" name="schemeSaveButton">
+      <widget class="QPushButton" name="schemeSaveAsButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -64,6 +59,12 @@
      <property name="uniformRowHeights">
       <bool>true</bool>
      </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="headerShowSortIndicator" stdset="0">
+      <bool>true</bool>
+     </attribute>
     </widget>
    </item>
    <item row="2" column="0" colspan="2">

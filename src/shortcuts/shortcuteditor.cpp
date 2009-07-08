@@ -23,6 +23,8 @@
 #include "clearbutton.h"
 
 #include <qevent.h>
+#include <qinputdialog.h>
+#include <qmessagebox.h>
 #include <qlineedit.h>
 #include <qtoolbutton.h>
 
@@ -229,6 +231,7 @@ Shortcuts::Scheme ShortcutEditorModel::scheme() const
 void ShortcutEditorModel::setScheme(const Shortcuts::Scheme &scheme)
 {
     m_scheme = scheme;
+    reset();
 }
 
 Shortcuts::Action ShortcutEditorModel::action(const QModelIndex &index) const
@@ -317,6 +320,9 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
 {
     setupUi(this);
 
+    schemeComboBox->addItems(Shortcuts::schemes());
+    schemeComboBox->setCurrentIndex(schemeComboBox->findText(Shortcuts::currentSchemeName()));
+
     m_model = new ShortcutEditorModel(this);
     if (m_schemeName.isEmpty())
         m_schemeName = QLatin1String("Default");
@@ -324,6 +330,9 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
     shortcuts->setModel(m_model);
 
     connect(shortcuts, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(edit(const QModelIndex &)));
+    connect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
+    connect(this, SIGNAL(accepted()), this, SLOT(saveScheme()));
+    connect(schemeSaveAsButton, SIGNAL(clicked()), this, SLOT(saveSchemeAs()));
 }
 
 void ShortcutEditor::edit(const QModelIndex &index)
@@ -332,4 +341,45 @@ void ShortcutEditor::edit(const QModelIndex &index)
     ShortcutDialog dialog(Shortcuts::shortcutName(action), m_model->sequences(index));
     if (dialog.exec())
         m_model->setSequences(action, dialog.sequences());
+}
+
+void ShortcutEditor::selectScheme(const QString &schemeName)
+{
+    if (Shortcuts::scheme(m_schemeName) != m_model->scheme()) {
+        switch (QMessageBox::question(this, tr("Shortcut editor"), tr("The current scheme has been modified. Do you want to save it?"), QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel)) {
+        case QMessageBox::Save:
+            saveScheme();
+        case QMessageBox::Discard:
+            break;
+        default:
+            // An additional signal for this would be great
+            disconnect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
+            schemeComboBox->setCurrentIndex(schemeComboBox->findText(m_schemeName));
+            connect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
+            return;
+        }
+    }
+
+    m_schemeName = schemeName;
+    m_model->setScheme(Shortcuts::scheme(m_schemeName));
+}
+
+void ShortcutEditor::saveScheme()
+{
+    if (Shortcuts::scheme(m_schemeName) != m_model->scheme())
+        Shortcuts::saveScheme(m_schemeName, m_model->scheme());
+}
+
+void ShortcutEditor::saveSchemeAs()
+{
+    bool ok;
+    QString name = QInputDialog::getText(this, tr("Save current scheme as..."), tr("Scheme name:"), QLineEdit::Normal, QString(), &ok);
+    if (ok && !name.isEmpty()) {
+        name = Shortcuts::saveScheme(name, m_model->scheme());
+
+        schemeComboBox->clear();
+        schemeComboBox->addItems(Shortcuts::schemes());
+        schemeComboBox->setCurrentIndex(schemeComboBox->findText(name));
+        m_schemeName = name;
+    }
 }
