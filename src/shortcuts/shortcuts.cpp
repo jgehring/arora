@@ -141,14 +141,14 @@ void Shortcuts::retranslate()
     QHash<QString, QMultiHash<Action, QPair<int, int> > > retranslateSequences;
     QStringList schemeNames = m_schemes.keys();
     QLatin1String def = QLatin1String("Default");
-    for (int i = 0; i < schemeNames.count(); i++) {
+    for (int i = 0; i < schemeNames.count(); ++i) {
         if (schemeNames[i] == def)
             continue;
         QMultiHash<Action, QPair<int, int> > temp;
-        for (int j = 0; j < _NumActions; j++) {
+        for (int j = 0; j < _NumActions; ++j) {
             QList<QKeySequence> sequences = m_schemes[schemeNames[i]].values((Action)j);
             QList<QKeySequence> defSequences = m_schemes[def].values((Action)j);
-            for (int k = 0; k < sequences.count(); k++) {
+            for (int k = 0; k < sequences.count(); ++k) {
                 int l = defSequences.indexOf(sequences[k]);
                 if (l>= 0) {
                     temp.insert((Action)j, QPair<int, int>(k, l));
@@ -170,11 +170,11 @@ void Shortcuts::retranslate()
         // An iterator would probably be faster, but is a inconvenient because
         // of the QMultiHash.
         QList<Action> actions = sequences.keys();
-        for (int j = 0; j < actions.count(); j++) {
+        for (int j = 0; j < actions.count(); ++j) {
             QList<QKeySequence> list = m_schemes[it.key()].values(actions[j]);
             QList<QKeySequence> defList = m_schemes[def].values(actions[j]);
             QList<QPair<int, int> > pairs = sequences.values(actions[j]);
-            for (int k = 0; k < pairs.count(); k++) {
+            for (int k = 0; k < pairs.count(); ++k) {
                 list[pairs[k].first] = list[pairs[k].second];
             }
         }
@@ -185,8 +185,7 @@ void Shortcuts::save()
 {
     QString dir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     QString shortcutsFile = dir + QLatin1String("/shortcuts.conf");
-    qDebug("saving in %s", qPrintable(shortcutsFile));
-    QSettings settings(shortcutsFile, QSettings::IniFormat); 
+    QSettings settings(shortcutsFile, QSettings::IniFormat);
 
     settings.clear();
     settings.setValue(QLatin1String("aroraVersion"), QCoreApplication::applicationVersion());
@@ -224,18 +223,18 @@ void Shortcuts::load()
 
     QString dir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     QString shortcutsFile = dir + QLatin1String("/shortcuts.conf");
-    QSettings settings(shortcutsFile, QSettings::IniFormat); 
+    QSettings settings(shortcutsFile, QSettings::IniFormat);
 
     QString version = settings.value(QLatin1String("aroraVersion")).toString();
 
     QStringList schemes = settings.childGroups();
     m_schemes.clear();
-    for (int i = 0; i < schemes.count(); i++) {
+    for (int i = 0; i < schemes.count(); ++i) {
         settings.beginGroup(schemes[i]);
 
         QMultiHash<Action, QKeySequence> shortcuts;
         QStringList actions = settings.childKeys();
-        for (int j = 0; j < actions.count(); j++) {
+        for (int j = 0; j < actions.count(); ++j) {
             // See comment in save() for an explaination
             QStringList tmp = actions[j].split(QLatin1Char('_'));
             if (tmp.count() < 2) {
@@ -340,7 +339,7 @@ void Shortcuts::init()
     if (!m_nameToAction.isEmpty())
         return;
 
-    for (int i = 0; i < _NumActions; i++)
+    for (int i = 0; i < _NumActions; ++i)
         m_nameToAction.insert(shortcutName((Action)i), (Action)i);
 }
 

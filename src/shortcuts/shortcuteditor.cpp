@@ -64,7 +64,7 @@ bool ShortcutKeySequenceEdit::eventFilter(QObject *object, QEvent *event)
     if (object == m_lineEdit) {
         // Fetch key presses using eventFilter() in order to fetch the Tab key
         if (event->type() == QEvent::KeyPress) {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
             keyPressEvent(keyEvent);
             return true;
         } else {
@@ -151,7 +151,7 @@ ShortcutDialog::ShortcutDialog(const QString &name, const QList<QKeySequence> &s
     label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     m_layout->addWidget(label);
 
-    for (int i = 0; i < sequences.count(); i++)
+    for (int i = 0; i < sequences.count(); ++i)
         m_layout->addLayout(makeContainer(sequences[i]));
     if (sequences.isEmpty())
         m_layout->addLayout(makeContainer(QKeySequence()));
@@ -167,11 +167,11 @@ ShortcutDialog::ShortcutDialog(const QString &name, const QList<QKeySequence> &s
 QList<QKeySequence> ShortcutDialog::sequences() const
 {
     QList<QKeySequence> list;
-    for (int i = 1; i < m_layout->count()-1; i++) {
+    for (int i = 1; i < m_layout->count()-1; ++i) {
         QLayout *layout = m_layout->itemAt(i)->layout();
         if (layout == NULL)
             continue;
-        ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer *>(layout);
+        ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer*>(layout);
         if (container == NULL)
             continue;
         list.append(container->sequence());
@@ -186,7 +186,7 @@ void ShortcutDialog::add()
 
 void ShortcutDialog::remove()
 {
-    ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer *>(sender());
+    ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer*>(sender());
     if (container == NULL)
         return;
 
@@ -247,7 +247,7 @@ QList<QKeySequence> ShortcutEditorModel::sequences(const QModelIndex &index) con
 void ShortcutEditorModel::setSequences(Shortcuts::Action action, const QList<QKeySequence> &sequences)
 {
     m_scheme.remove(action);
-    for (int i = 0; i < sequences.count(); i++)
+    for (int i = 0; i < sequences.count(); ++i)
         m_scheme.insert(action, sequences[i]);
 }
 
@@ -262,7 +262,7 @@ QVariant ShortcutEditorModel::data(const QModelIndex &index, int role) const
         } else {
             QList<QKeySequence> shortcuts = sequences(index);
             QString tmp;
-            for (int i = 0; i < shortcuts.count(); i++) {
+            for (int i = 0; i < shortcuts.count(); ++i) {
                 tmp += shortcuts[i].toString();
                 if (i != shortcuts.count()-1) {
                     tmp += QLatin1String(", ");
@@ -270,7 +270,7 @@ QVariant ShortcutEditorModel::data(const QModelIndex &index, int role) const
             }
             return tmp;
         }
-    } 
+    }
 
     return QVariant();
 }

@@ -92,7 +92,7 @@ private:
     ShortcutKeySequenceEditContainer *makeContainer(const QKeySequence &sequence);
 
     QVBoxLayout *m_layout;
-}; 
+};
 
 class ShortcutEditorModel : public QAbstractItemModel
 {
