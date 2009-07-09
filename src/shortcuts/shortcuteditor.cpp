@@ -333,6 +333,7 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
     connect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
     connect(this, SIGNAL(accepted()), this, SLOT(saveScheme()));
     connect(schemeSaveAsButton, SIGNAL(clicked()), this, SLOT(saveSchemeAs()));
+    connect(buttonBox->button(QDialogButtonBox::Reset), SIGNAL(clicked()), this, SLOT(resetScheme()));
 }
 
 void ShortcutEditor::edit(const QModelIndex &index)
@@ -385,4 +386,9 @@ void ShortcutEditor::saveSchemeAs()
 
         m_schemeName = name;
     }
+}
+
+void ShortcutEditor::resetScheme()
+{
+    m_model->setScheme(Shortcuts::scheme(m_schemeName));
 }

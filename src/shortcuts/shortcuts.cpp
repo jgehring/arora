@@ -144,7 +144,8 @@ bool Shortcuts::isFactoryScheme(const QString &name)
 // Everybody loves templates...
 void Shortcuts::retranslate()
 {
-    return;
+    // TODO: This is untested!
+#if 0
     // Generate a list of actions that are still translatable, i.e. that
     // are also present in the default scheme (for the same action).
     // We can use absolute sequence list indexes here because they won't
@@ -189,6 +190,7 @@ void Shortcuts::retranslate()
             }
         }
     }
+#endif
 }
 
 void Shortcuts::save()

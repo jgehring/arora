@@ -109,7 +109,7 @@ public:
 
 private:
     static bool m_loaded;
-    static QHash<QString, Scheme > m_schemes;
+    static QHash<QString, Scheme> m_schemes;
     static QString m_currentScheme;
     static QHash<QString, Action> m_nameToAction;
 };

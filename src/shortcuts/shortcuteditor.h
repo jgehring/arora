@@ -131,6 +131,7 @@ private slots:
     void selectScheme(const QString &schemeName);
     void saveScheme();
     void saveSchemeAs();
+    void resetScheme();
 
 private:
     QString m_schemeName;
