@@ -62,9 +62,9 @@ QString Shortcuts::shortcutName(Action action)
     case FindNext:              return QLatin1String("FindNext");
     case FindPrevious:          return QLatin1String("FindPrevious");
     case Preferences:           return QLatin1String("Preferences");
-    case HideToolbar:           return QLatin1String("HideToolbar");
-    case ShowBookmarsBar:       return QLatin1String("ShowBookmarsBar");
-    case HideStatusBar:         return QLatin1String("HideStatusBar");
+    case ViewToolbar:           return QLatin1String("ViewToolbar");
+    case ViewBookmarsBar:       return QLatin1String("ViewBookmarsBar");
+    case ViewStatusBar:         return QLatin1String("ViewStatusBar");
     case Stop:                  return QLatin1String("Stop");
     case ReloadPage:            return QLatin1String("ReloadPage");
     case ZoomIn:                return QLatin1String("ZoomIn");
@@ -72,12 +72,12 @@ QString Shortcuts::shortcutName(Action action)
     case ZoomOut:               return QLatin1String("ZoomOut");
     case FullScreen:            return QLatin1String("FullScreen");
     case PageSource:            return QLatin1String("PageSource");
-    case HistoryBackward:       return QLatin1String("HistoryBackward");
+    case HistoryBack:           return QLatin1String("HistoryBack");
     case HistoryForward:        return QLatin1String("HistoryForward");
     case HistoryHome:           return QLatin1String("HistoryHome");
     case ShowAllHistory:        return QLatin1String("ShowAllHistory");
     case ClearHistory:          return QLatin1String("ClearHistory");
-    case ShowAllBookmarsk:      return QLatin1String("ShowAllBookmarsk");
+    case ShowAllBookmarks:      return QLatin1String("ShowAllBookmarks");
     case AddBookmark:           return QLatin1String("AddBookmark");
     case BookmarkAllTabs:       return QLatin1String("BookmarkAllTabs");
     case NextTab:               return QLatin1String("NextTab");
@@ -203,6 +203,9 @@ void Shortcuts::save()
     QHashIterator<QString, QMultiHash<Action, QKeySequence> > i(m_schemes);
     while (i.hasNext()) {
         i.next();
+        if (isFactoryScheme(i.key()))
+            continue;
+
         settings.beginGroup(i.key());
 
         // The key for this shortcut constist of "$num:$action", so we are able
@@ -240,6 +243,9 @@ void Shortcuts::load()
     QStringList schemes = settings.childGroups();
     m_schemes.clear();
     for (int i = 0; i < schemes.count(); ++i) {
+        if (isFactoryScheme(schemes[i]))
+            continue;
+
         settings.beginGroup(schemes[i]);
 
         QMultiHash<Action, QKeySequence> shortcuts;
@@ -285,7 +291,6 @@ void Shortcuts::createDefaultSchemes()
     scheme.insert(CloseTab, QKeySequence::Close);
     scheme.insert(SaveAs, QKeySequence::Save);
     scheme.insert(Print, QKeySequence::Print);
-    // PrivateBrowsing is empty
     scheme.insert(CloseWindow, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_W));
 
     scheme.insert(Find, QKeySequence::Find);
@@ -293,53 +298,54 @@ void Shortcuts::createDefaultSchemes()
     scheme.insert(FindPrevious, QKeySequence::FindPrevious);
     scheme.insert(Preferences, tr("Ctrl+,"));
 
+    scheme.insert(Stop, QKeySequence(Qt::CTRL | Qt::Key_Period));
+    scheme.insert(Stop, Qt::Key_Escape);
+    scheme.insert(ReloadPage, QKeySequence(Qt::CTRL | Qt::Key_R));
+    scheme.insert(ReloadPage, QKeySequence(Qt::Key_F5));
+    scheme.insert(ZoomIn, QKeySequence(Qt::CTRL | Qt::Key_Equal));
+    scheme.insert(ZoomIn, QKeySequence(Qt::CTRL | Qt::Key_Plus));
+    scheme.insert(ZoomNormal , QKeySequence(Qt::CTRL | Qt::Key_0));
+    scheme.insert(ZoomOut, QKeySequence(Qt::CTRL | Qt::Key_Underscore));
+    scheme.insert(ZoomOut, QKeySequence(Qt::CTRL | Qt::Key_Minus));
+    scheme.insert(FullScreen, Qt::Key_F11);
+
+    scheme.insert(HistoryBack, QKeySequence::Back);
+    scheme.insert(HistoryForward, QKeySequence::Forward);
+    scheme.insert(HistoryHome, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_H));
+
+    scheme.insert(ShowAllBookmarks, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_B));
+    scheme.insert(AddBookmark, QKeySequence(Qt::CTRL | Qt::Key_D));
+
     scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_BraceRight));
     scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_PageDown));
     scheme.insert(NextTab, tr("Ctrl+]"));
     scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_Less));
     scheme.insert(NextTab, QKeySequence(Qt::CTRL | Qt::Key_Tab));
-
     scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_BraceLeft));
     scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_PageUp));
     scheme.insert(PreviousTab, tr("Ctrl+["));
     scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::Key_Greater));
     scheme.insert(PreviousTab, QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Tab));
+    scheme.insert(ShowDownloads, QKeySequence(tr("Ctrl+Y", "Download Manager")));
 
     scheme.insert(PageSource, tr("Ctrl+Alt+U"));
 
     scheme.insert(WebSearch, QKeySequence(tr("Ctrl+K", "Web Search")));
     scheme.insert(ClearPrivateData, QKeySequence(tr("Ctrl+Shift+Delete", "Clear Private Data")));
-#if 0
-        Find,
-        FindNext,
-        FindPrevious,
-        Preferences,
-        HideToolbar,        // View
-        ShowBookmarsBar,
-        HideStatusBar,
-        Stop,
-        ReloadPage,
-        ZoomIn,
-        ZoomNormal,
-        ZoomOut,
-        FullScreen,
-        HistoryBackward,    // History
-        HistoryForward,
-        HistoryHome,
-        ShowAllHistory,
-        ClearHistory,
-        ShowAllBookmarsk,   // Bookmarks
-        AddBookmark,
-        BookmarkAllTabs,
-        NextTab,            // Window
-        PreviousTab,
-        ShowDownloads,
-        WebSearch,          // Tools
-        ClearPrivateData,
-        ShowNetworkMonitor,
-        EnableWebInspector,
-        SwitchAppLanguage,  // Help
-#endif
+
+    // No default shortcuts for:
+    //
+    //  - PrivateBrowsing
+    //  - EnableWebInspector
+    //  - SwitchAppLanguage
+    //  - ViewToolbar
+    //  - ViewBookmarksBar
+    //  - ViewStatusBar
+    //
+    // TODO:
+    //  - ShowNetworkMonitor
+    //  - ShowAllHistory
+    //  - ClearHistory
 
     m_schemes.insert(Shortcuts::defaultScheme, scheme);
 }

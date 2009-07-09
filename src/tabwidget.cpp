@@ -147,6 +147,7 @@ TabWidget::TabWidget(QWidget *parent)
     connect(m_closeTabAction, SIGNAL(triggered()), this, SLOT(closeTab()));
 
     m_bookmarkTabsAction = new QAction(this);
+    m_bookmarkTabsAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::BookmarkAllTabs));
     connect(m_bookmarkTabsAction, SIGNAL(triggered()), this, SLOT(bookmarkTabs()));
 
     m_newTabAction->setIcon(QIcon(QLatin1String(":graphics/addtab.png")));

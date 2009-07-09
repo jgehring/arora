@@ -49,9 +49,9 @@ public:
         FindNext,
         FindPrevious,
         Preferences,
-        HideToolbar,        // View
-        ShowBookmarsBar,
-        HideStatusBar,
+        ViewToolbar,        // View
+        ViewBookmarsBar,
+        ViewStatusBar,
         Stop,
         ReloadPage,
         ZoomIn,
@@ -59,12 +59,12 @@ public:
         ZoomOut,
         FullScreen,
         PageSource,
-        HistoryBackward,    // History
+        HistoryBack,        // History
         HistoryForward,
         HistoryHome,
         ShowAllHistory,
         ClearHistory,
-        ShowAllBookmarsk,   // Bookmarks
+        ShowAllBookmarks,   // Bookmarks
         AddBookmark,
         BookmarkAllTabs,
         NextTab,            // Window

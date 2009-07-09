@@ -612,10 +612,12 @@ void BrowserMainWindow::setupMenu()
     addAction(m_viewShowMenuBarAction);
 
     m_viewToolbarAction = new QAction(this);
+    m_viewToolbarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewToolbar));
     connect(m_viewToolbarAction, SIGNAL(triggered()), this, SLOT(viewToolbar()));
     m_viewMenu->addAction(m_viewToolbarAction);
 
     m_viewBookmarkBarAction = new QAction(m_viewMenu);
+    m_viewBookmarkBarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewBookmarsBar));
     connect(m_viewBookmarkBarAction, SIGNAL(triggered()), this, SLOT(viewBookmarksBar()));
     m_viewMenu->addAction(m_viewBookmarkBarAction);
 
@@ -625,47 +627,36 @@ void BrowserMainWindow::setupMenu()
             m_autoSaver, SLOT(changeOccurred()));
 
     m_viewStatusbarAction = new QAction(m_viewMenu);
+    m_viewStatusbarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewStatusBar));
     connect(m_viewStatusbarAction, SIGNAL(triggered()), this, SLOT(viewStatusbar()));
     m_viewMenu->addAction(m_viewStatusbarAction);
 
     m_viewMenu->addSeparator();
 
     m_viewStopAction = new QAction(m_viewMenu);
-    QList<QKeySequence> shortcuts;
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Period));
-    shortcuts.append(Qt::Key_Escape);
-    m_viewStopAction->setShortcuts(shortcuts);
+    m_viewStopAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::Stop));
     m_tabWidget->addWebAction(m_viewStopAction, QWebPage::Stop);
     m_viewMenu->addAction(m_viewStopAction);
 
     m_viewReloadAction = new QAction(m_viewMenu);
-    shortcuts.clear();
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_R));
-    shortcuts.append(QKeySequence(Qt::Key_F5));
-    m_viewReloadAction->setShortcuts(shortcuts);
+    m_viewReloadAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ReloadPage));
     m_tabWidget->addWebAction(m_viewReloadAction, QWebPage::Reload);
     m_viewMenu->addAction(m_viewReloadAction);
 
     m_viewZoomInAction = new QAction(m_viewMenu);
-    shortcuts.clear();
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Plus));
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Equal));
-    m_viewZoomInAction->setShortcuts(shortcuts);
+    m_viewZoomInAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomIn));
     connect(m_viewZoomInAction, SIGNAL(triggered()),
             this, SLOT(zoomIn()));
     m_viewMenu->addAction(m_viewZoomInAction);
 
     m_viewZoomNormalAction = new QAction(m_viewMenu);
-    m_viewZoomNormalAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_0));
+    m_viewZoomNormalAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomNormal));
     connect(m_viewZoomNormalAction, SIGNAL(triggered()),
             this, SLOT(zoomNormal()));
     m_viewMenu->addAction(m_viewZoomNormalAction);
 
     m_viewZoomOutAction = new QAction(m_viewMenu);
-    shortcuts.clear();
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Minus));
-    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Underscore));
-    m_viewZoomOutAction->setShortcuts(shortcuts);
+    m_viewZoomOutAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomOut));
     connect(m_viewZoomOutAction, SIGNAL(triggered()),
             this, SLOT(zoomOut()));
     m_viewMenu->addAction(m_viewZoomOutAction);
@@ -679,7 +670,7 @@ void BrowserMainWindow::setupMenu()
     m_viewMenu->addAction(m_viewZoomTextOnlyAction);
 
     m_viewFullScreenAction = new QAction(m_viewMenu);
-    m_viewFullScreenAction->setShortcut(Qt::Key_F11);
+    m_viewFullScreenAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::FullScreen));
     connect(m_viewFullScreenAction, SIGNAL(triggered(bool)),
             this, SLOT(viewFullScreen(bool)));
     m_viewFullScreenAction->setCheckable(true);
@@ -726,21 +717,21 @@ void BrowserMainWindow::setupMenu()
 
     m_historyBackAction = new QAction(this);
     m_tabWidget->addWebAction(m_historyBackAction, QWebPage::Back);
-    m_historyBackAction->setShortcuts(QKeySequence::Back);
+    m_historyBackAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryBack));
 #if QT_VERSION < 0x040600 || (QT_VERSION >= 0x040600 && !defined(Q_WS_X11))
     m_historyBackAction->setIconVisibleInMenu(false);
 #endif
 
     m_historyForwardAction = new QAction(this);
     m_tabWidget->addWebAction(m_historyForwardAction, QWebPage::Forward);
-    m_historyForwardAction->setShortcuts(QKeySequence::Forward);
+    m_historyForwardAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryForward));
 #if QT_VERSION < 0x040600 || (QT_VERSION >= 0x040600 && !defined(Q_WS_X11))
     m_historyForwardAction->setIconVisibleInMenu(false);
 #endif
 
     m_historyHomeAction = new QAction(this);
     connect(m_historyHomeAction, SIGNAL(triggered()), this, SLOT(goHome()));
-    m_historyHomeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_H));
+    m_historyHomeAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryHome));
 
     m_historyRestoreLastSessionAction = new QAction(this);
     connect(m_historyRestoreLastSessionAction, SIGNAL(triggered()),
@@ -767,7 +758,7 @@ void BrowserMainWindow::setupMenu()
     menuBar()->addMenu(m_bookmarksMenu);
 
     m_bookmarksShowAllAction = new QAction(this);
-    m_bookmarksShowAllAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_B));
+    m_bookmarksShowAllAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ShowAllBookmarks));
     connect(m_bookmarksShowAllAction, SIGNAL(triggered()),
             this, SLOT(showBookmarksDialog()));
 
@@ -778,7 +769,7 @@ void BrowserMainWindow::setupMenu()
 #endif
     connect(m_bookmarksAddAction, SIGNAL(triggered()),
             this, SLOT(addBookmark()));
-    m_bookmarksAddAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
+    m_bookmarksAddAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::AddBookmark));
 
     m_bookmarksAddFolderAction = new QAction(this);
     connect(m_bookmarksAddFolderAction, SIGNAL(triggered()),
@@ -990,7 +981,7 @@ void BrowserMainWindow::retranslate()
     m_toolsWebSearchAction->setText(tr("Web &Search"));
     m_toolsWebSearchAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::WebSearch));
     m_toolsClearPrivateDataAction->setText(tr("&Clear Private Data"));
-    m_toolsClearPrivateDataAction->setShortcut(QKeySequence(tr("Ctrl+Shift+Delete", "Clear Private Data")));
+    m_toolsClearPrivateDataAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ClearPrivateData));
     m_toolsEnableInspectorAction->setText(tr("Enable Web &Inspector"));
     m_toolsPreferencesAction->setText(tr("Options..."));
     m_toolsPreferencesAction->setShortcut(tr("Ctrl+,"));
@@ -999,6 +990,7 @@ void BrowserMainWindow::retranslate()
 
     m_helpMenu->setTitle(tr("&Help"));
     m_helpChangeLanguageAction->setText(tr("Switch application language "));
+    m_helpChangeLanguageAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::SwitchAppLanguage));
     m_helpAboutQtAction->setText(tr("About &Qt"));
     m_helpAboutApplicationAction->setText(tr("About &%1", "About Browser").arg(QApplication::applicationName()));
 
