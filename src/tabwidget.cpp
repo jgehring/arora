@@ -811,20 +811,8 @@ void TabWidget::aboutToShowRecentTriggeredAction(QAction *action)
 void TabWidget::retranslate()
 {
     m_nextTabAction->setText(tr("Show Next Tab"));
-//    QList<QKeySequence> shortcuts;
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_BraceRight));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_PageDown));
-//    shortcuts.append(tr("Ctrl-]"));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Less));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Tab));
     m_nextTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NextTab));
     m_previousTabAction->setText(tr("Show Previous Tab"));
-//    shortcuts.clear();
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_BraceLeft));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_PageUp));
-//    shortcuts.append(tr("Ctrl-["));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::Key_Greater));
-//    shortcuts.append(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Tab));
     m_previousTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PreviousTab));
     m_recentlyClosedTabsAction->setText(tr("Recently Closed Tabs"));
     m_newTabAction->setText(tr("New &Tab"));
