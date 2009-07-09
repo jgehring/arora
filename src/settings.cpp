@@ -102,7 +102,9 @@ SettingsDialog::SettingsDialog(QWidget *parent)
     connect(styleSheetBrowseButton, SIGNAL(clicked()), this, SLOT(chooseStyleSheet()));
 
     connect(editAutoFillUserButton, SIGNAL(clicked()), this, SLOT(editAutoFillUser()));
+    connect(shortcutSchemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(shortcutSchemeChanged(const QString &)));
     connect(shortcutEditorButton, SIGNAL(clicked()), this, SLOT(editShortcuts()));
+    connect(shortcutDeleteButton, SIGNAL(clicked()), this, SLOT(deleteShortcutScheme()));
 
     // As network cache has too many bugs in 4.5.1, do not allow to enable it.
     if (QLatin1String(qVersion()) == QLatin1String("4.5.1"))
@@ -285,9 +287,7 @@ void SettingsDialog::loadFromSettings()
     settings.endGroup();
     // Shortcut schemes aren't stored in the settings file directly, but we
     // can setup the corresponding combo box here
-    shortcutSchemeComboBox->clear();
-    shortcutSchemeComboBox->addItems(Shortcuts::schemes());
-    shortcutSchemeComboBox->setCurrentIndex(shortcutSchemeComboBox->findText(Shortcuts::currentSchemeName()));
+    refillShortcutComboBox();
 }
 
 void SettingsDialog::saveToSettings()
@@ -530,8 +530,27 @@ void SettingsDialog::editAutoFillUser()
     dialog.exec();
 }
 
+void SettingsDialog::shortcutSchemeChanged(const QString &name)
+{
+    shortcutDeleteButton->setDisabled(Shortcuts::isFactoryScheme(name));
+}
+
 void SettingsDialog::editShortcuts()
 {
     ShortcutEditor dialog(shortcutSchemeComboBox->currentText());
     dialog.exec();
+    refillShortcutComboBox();
+}
+
+void SettingsDialog::deleteShortcutScheme()
+{
+    Shortcuts::deleteScheme(shortcutSchemeComboBox->currentText());
+    refillShortcutComboBox();
+}
+
+void SettingsDialog::refillShortcutComboBox()
+{
+    shortcutSchemeComboBox->clear();
+    shortcutSchemeComboBox->addItems(Shortcuts::schemes());
+    shortcutSchemeComboBox->setCurrentIndex(shortcutSchemeComboBox->findText(Shortcuts::currentSchemeName()));
 }

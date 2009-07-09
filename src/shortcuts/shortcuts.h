@@ -26,6 +26,7 @@
 
 class Shortcuts : public QObject
 {
+    friend class SettingsDialog;
     friend class ShortcutEditor;
 
     Q_OBJECT
@@ -91,6 +92,7 @@ public:
     static QString currentSchemeName();
     static void setCurrentScheme(const QString &name);
 
+    static bool isFactoryScheme(const QString &name);
     static void retranslate();
 
     static void save();
@@ -100,7 +102,12 @@ private:
     static void createDefaultSchemes();
     static void init();
     static QString saveScheme(const QString &name, const Scheme &scheme);
+    static void deleteScheme(const QString &name);
 
+public:
+    static const QString defaultScheme;
+
+private:
     static bool m_loaded;
     static QHash<QString, Scheme > m_schemes;
     static QString m_currentScheme;

@@ -377,9 +377,12 @@ void ShortcutEditor::saveSchemeAs()
     if (ok && !name.isEmpty()) {
         name = Shortcuts::saveScheme(name, m_model->scheme());
 
+        disconnect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
         schemeComboBox->clear();
         schemeComboBox->addItems(Shortcuts::schemes());
         schemeComboBox->setCurrentIndex(schemeComboBox->findText(name));
+        connect(schemeComboBox, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(selectScheme(const QString &)));
+
         m_schemeName = name;
     }
 }

@@ -24,9 +24,12 @@
 #include <qstringlist.h>
 #include <qsettings.h>
 
+// The default and fall-back scheme
+const QString Shortcuts::defaultScheme(QLatin1String("Default"));
+
 bool Shortcuts::m_loaded = false;
 QHash<QString, Shortcuts::Scheme > Shortcuts::m_schemes;
-QString Shortcuts::m_currentScheme = QLatin1String("Default");
+QString Shortcuts::m_currentScheme = defaultScheme;
 QHash<QString, Shortcuts::Action> Shortcuts::m_nameToAction;
 
 
@@ -130,6 +133,14 @@ void Shortcuts::setCurrentScheme(const QString &name)
         m_currentScheme = name;
 }
 
+bool Shortcuts::isFactoryScheme(const QString &name)
+{
+    if (name == Shortcuts::defaultScheme)
+        return true;
+
+    return false;
+}
+
 // Everybody loves templates...
 void Shortcuts::retranslate()
 {
@@ -140,14 +151,13 @@ void Shortcuts::retranslate()
     // change during this function.
     QHash<QString, QMultiHash<Action, QPair<int, int> > > retranslateSequences;
     QStringList schemeNames = m_schemes.keys();
-    QLatin1String def = QLatin1String("Default");
     for (int i = 0; i < schemeNames.count(); ++i) {
-        if (schemeNames[i] == def)
+        if (schemeNames[i] == Shortcuts::defaultScheme)
             continue;
         QMultiHash<Action, QPair<int, int> > temp;
         for (int j = 0; j < _NumActions; ++j) {
             QList<QKeySequence> sequences = m_schemes[schemeNames[i]].values((Action)j);
-            QList<QKeySequence> defSequences = m_schemes[def].values((Action)j);
+            QList<QKeySequence> defSequences = m_schemes[Shortcuts::defaultScheme].values((Action)j);
             for (int k = 0; k < sequences.count(); ++k) {
                 int l = defSequences.indexOf(sequences[k]);
                 if (l>= 0) {
@@ -172,7 +182,7 @@ void Shortcuts::retranslate()
         QList<Action> actions = sequences.keys();
         for (int j = 0; j < actions.count(); ++j) {
             QList<QKeySequence> list = m_schemes[it.key()].values(actions[j]);
-            QList<QKeySequence> defList = m_schemes[def].values(actions[j]);
+            QList<QKeySequence> defList = m_schemes[Shortcuts::defaultScheme].values(actions[j]);
             QList<QPair<int, int> > pairs = sequences.values(actions[j]);
             for (int k = 0; k < pairs.count(); ++k) {
                 list[pairs[k].first] = list[pairs[k].second];
@@ -249,14 +259,14 @@ void Shortcuts::load()
 
     QSettings appSettings;
     appSettings.beginGroup(QLatin1String("shortcuts"));
-    m_currentScheme = appSettings.value(QLatin1String("currentScheme"), QLatin1String("Default")).toString();
+    m_currentScheme = appSettings.value(QLatin1String("currentScheme"), Shortcuts::defaultScheme).toString();
     appSettings.endGroup();
 
     // Generate default shortcut scheme on first run and after version updates
-    if (!m_schemes.contains(QLatin1String("Default")) || (version != QCoreApplication::applicationVersion()))
+    if (!m_schemes.contains(Shortcuts::defaultScheme) || (version != QCoreApplication::applicationVersion()))
         createDefaultSchemes();
     if (!m_schemes.contains(m_currentScheme))
-        m_currentScheme = QLatin1String("Default");
+        m_currentScheme = Shortcuts::defaultScheme;
 
     m_loaded = true;
 }
@@ -331,7 +341,7 @@ void Shortcuts::createDefaultSchemes()
         SwitchAppLanguage,  // Help
 #endif
 
-    m_schemes.insert(QLatin1String("Default"), scheme);
+    m_schemes.insert(Shortcuts::defaultScheme, scheme);
 }
 
 void Shortcuts::init()
@@ -347,7 +357,7 @@ void Shortcuts::init()
 // scheme which can't be overridden)
 QString Shortcuts::saveScheme(const QString &name, const Scheme &scheme)
 {
-    if (name != QLatin1String("Default")) {
+    if (name != Shortcuts::defaultScheme) {
         m_schemes.insert(name, scheme);
         save();
         return name;
@@ -357,10 +367,22 @@ QString Shortcuts::saveScheme(const QString &name, const Scheme &scheme)
     int i = 0;
     do {
         newName = QString(QLatin1String("%1_%2")).arg(name).arg(i++);
-    } while (!m_schemes.contains(newName));
+    } while (m_schemes.contains(newName));
 
     m_schemes.insert(newName, scheme);
     save();
     return newName;
 }
 
+// This function will do nothing if the scheme is a factory scheme
+void Shortcuts::deleteScheme(const QString &name)
+{
+    if (isFactoryScheme(name))
+        return;
+
+    m_schemes.remove(name);
+    if (!m_schemes.contains(m_currentScheme)) {
+        m_currentScheme = Shortcuts::defaultScheme;
+    }
+    save();
+}

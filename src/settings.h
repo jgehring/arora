@@ -88,12 +88,16 @@ private slots:
     void chooseFont();
     void chooseFixedFont();
     void chooseAcceptLanguage();
+    void shortcutSchemeChanged(const QString &name);
     void editShortcuts();
+    void deleteShortcutScheme();
 
     void chooseStyleSheet();
     void editAutoFillUser();
 
 private:
+    void refillShortcutComboBox();
+
     QFont m_standardFont;
     QFont m_fixedFont;
     bool m_cacheEnabled;
