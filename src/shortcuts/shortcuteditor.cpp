@@ -220,7 +220,9 @@ ShortcutKeySequenceEditContainer *ShortcutDialog::makeContainer(const QKeySequen
 ShortcutEditorModel::ShortcutEditorModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
-
+    for (int i = 0; i < Shortcuts::_NumActions; ++i) {
+        m_actions.append((Shortcuts::Action)i);
+    }
 }
 
 Shortcuts::Scheme ShortcutEditorModel::scheme() const
@@ -236,12 +238,12 @@ void ShortcutEditorModel::setScheme(const Shortcuts::Scheme &scheme)
 
 Shortcuts::Action ShortcutEditorModel::action(const QModelIndex &index) const
 {
-    return (Shortcuts::Action)index.row();
+    return m_actions[index.row()];
 }
 
 QList<QKeySequence> ShortcutEditorModel::sequences(const QModelIndex &index) const
 {
-    return m_scheme.values((Shortcuts::Action)index.row());
+    return m_scheme.values(m_actions[index.row()]);
 }
 
 void ShortcutEditorModel::setSequences(Shortcuts::Action action, const QList<QKeySequence> &sequences)
@@ -312,6 +314,29 @@ int ShortcutEditorModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return 2;
+}
+
+static bool shortcutNameLessThan(const Shortcuts::Action &a, const Shortcuts::Action &b)
+{
+    return Shortcuts::shortcutName(a) < Shortcuts::shortcutName(b);
+}
+
+static bool shortcutNameGreaterThan(const Shortcuts::Action &a, const Shortcuts::Action &b)
+{
+    return Shortcuts::shortcutName(a) > Shortcuts::shortcutName(b);
+}
+
+void ShortcutEditorModel::sort(int column, Qt::SortOrder order)
+{
+    // Sorting by the shortcuts themselves doesn't make much sense
+    if (column != 0)
+        return;
+
+    if (order == Qt::AscendingOrder)
+        qStableSort(m_actions.begin(), m_actions.end(), shortcutNameLessThan);
+    else
+        qStableSort(m_actions.begin(), m_actions.end(), shortcutNameGreaterThan);
+    emit layoutChanged();
 }
 
 

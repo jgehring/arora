@@ -114,9 +114,11 @@ public:
     virtual QModelIndex parent(const QModelIndex &index) const;
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    virtual void sort(int column, Qt::SortOrder order= Qt::AscendingOrder);
 
 private:
     Shortcuts::Scheme m_scheme;
+    QList<Shortcuts::Action> m_actions; // Used for sorting
 };
 
 class ShortcutEditor : public QDialog, public Ui_ShortcutEditor
