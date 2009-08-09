@@ -24,17 +24,16 @@
 
 #include <qevent.h>
 #include <qinputdialog.h>
-#include <qmessagebox.h>
 #include <qlineedit.h>
+#include <qmessagebox.h>
 #include <qtoolbutton.h>
 
 ShortcutKeySequenceEdit::ShortcutKeySequenceEdit(QWidget *parent)
-    : QWidget(parent), m_lineEdit(new LineEdit(this))
+    : QWidget(parent), m_lineEdit(new LineEdit(this)), m_valid(true)
 {
     ClearButton *clearButton = new ClearButton(m_lineEdit);
     m_lineEdit->addWidget(clearButton, LineEdit::RightSide);
 
-    connect(m_lineEdit, SIGNAL(textChanged(const QString &)), this, SIGNAL(sequenceChanged()));
     connect(clearButton, SIGNAL(clicked()), m_lineEdit, SLOT(clear()));
 
     QHBoxLayout *layout = new QHBoxLayout(this);
@@ -57,6 +56,31 @@ void ShortcutKeySequenceEdit::setSequence(const QKeySequence &sequence)
 {
     m_sequence = sequence;
     m_lineEdit->setText(sequence.toString());
+}
+
+bool ShortcutKeySequenceEdit::isValid() const
+{
+    return m_valid;
+}
+
+
+void ShortcutKeySequenceEdit::setValid(bool valid)
+{
+    // The term "invalid" is used for a shortcut that clashes with an
+    // existing shortcut. For the QLineEdit, this results in a simple
+    // background color change.
+    m_valid = valid;
+
+    QPalette palette;
+    if (!valid) {
+        QColor color = palette.color(m_lineEdit->backgroundRole());
+        // TODO: Proper adjustment to red
+        color.setRed(qMin(255, color.red() + 20));
+        color.setGreen(qMax(0, color.green() - 20));
+        color.setBlue(qMax(0, color.blue() - 20));
+        palette.setColor(m_lineEdit->backgroundRole(), color);
+    }
+    m_lineEdit->setPalette(palette);
 }
 
 bool ShortcutKeySequenceEdit::eventFilter(QObject *object, QEvent *event)
@@ -101,6 +125,8 @@ void ShortcutKeySequenceEdit::keyPressEvent(QKeyEvent *event)
     m_sequence = QKeySequence(key);
     m_lineEdit->setText(m_sequence.toString());
     event->accept();
+
+    emit shortcutChanged(m_sequence);
 }
 
 int ShortcutKeySequenceEdit::translateModifiers(Qt::KeyboardModifiers modifiers, const QString &text) const
@@ -140,9 +166,14 @@ QKeySequence ShortcutKeySequenceEditContainer::sequence() const
     return m_edit->sequence();
 }
 
+ShortcutKeySequenceEdit *ShortcutKeySequenceEditContainer::sequenceEdit() const
+{
+    return m_edit;
+}
 
-ShortcutDialog::ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, QWidget *parent)
-    : QDialog(parent)
+
+ShortcutDialog::ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, const QHash<QString, Shortcuts::Action> &used, QWidget *parent)
+    : QDialog(parent), m_used(used)
 {
     // The layout items before and after the sequence edit widgets are
     // essential, i.e. they are expected to be present in add() and remove()
@@ -174,7 +205,8 @@ QList<QKeySequence> ShortcutDialog::sequences() const
         ShortcutKeySequenceEditContainer *container = qobject_cast<ShortcutKeySequenceEditContainer*>(layout);
         if (container == NULL)
             continue;
-        list.append(container->sequence());
+        if (!container->sequence().isEmpty())
+            list.append(container->sequence());
     }
     return list;
 }
@@ -208,11 +240,26 @@ void ShortcutDialog::remove()
     adjustSize();
 }
 
+void ShortcutDialog::shortcutChanged()
+{
+    ShortcutKeySequenceEdit *edit = qobject_cast<ShortcutKeySequenceEdit*>(sender());
+    if (!edit)
+        return;
+
+    // Check if the new shortcut collides with an existing one
+    if (m_used.contains(edit->sequence().toString())) {
+        edit->setValid(false);
+    } else {
+        edit->setValid(true);
+    }
+}
+
 ShortcutKeySequenceEditContainer *ShortcutDialog::makeContainer(const QKeySequence &sequence)
 {
     ShortcutKeySequenceEditContainer *container = new ShortcutKeySequenceEditContainer(sequence, this);
     connect(container, SIGNAL(add()), this, SLOT(add()));
     connect(container, SIGNAL(remove()), this, SLOT(remove()));
+    connect(container->sequenceEdit(), SIGNAL(shortcutChanged(const QKeySequence &)), this, SLOT(shortcutChanged()));
     return container;
 }
 
@@ -364,7 +411,20 @@ ShortcutEditor::ShortcutEditor(const QString &schemeName, QWidget *parent)
 void ShortcutEditor::edit(const QModelIndex &index)
 {
     Shortcuts::Action action = m_model->action(index);
-    ShortcutDialog dialog(Shortcuts::shortcutName(action), m_model->sequences(index));
+
+    // Setup hash with shortcuts that are already used (but don't include
+    // the shortcuts that will be edited)
+    QHash<QString, Shortcuts::Action> used;
+    Shortcuts::Scheme scheme = Shortcuts::currentScheme();
+    Shortcuts::Scheme::const_iterator it = scheme.constBegin();
+    while (it != scheme.constEnd()) {
+        if (it.key() != action) {
+            used.insert(it.value().toString(), it.key());
+        }
+        ++it;
+    }
+
+    ShortcutDialog dialog(Shortcuts::shortcutName(action), m_model->sequences(index), used, this);
     if (dialog.exec())
         m_model->setSequences(action, dialog.sequences());
 }

@@ -36,13 +36,16 @@ class ShortcutKeySequenceEdit : public QWidget
     Q_OBJECT
 
 signals:
-    void sequenceChanged();
+    void shortcutChanged(const QKeySequence &sequence);
 
 public:
     ShortcutKeySequenceEdit(QWidget *parent = 0);
 
     QKeySequence sequence() const;
     void setSequence(const QKeySequence &sequence);
+
+    bool isValid() const;
+    void setValid(bool valid);
 
     bool eventFilter(QObject *object, QEvent *event);
 
@@ -55,6 +58,7 @@ private:
     int translateModifiers(Qt::KeyboardModifiers modifiers, const QString &text) const;
 
     LineEdit *m_lineEdit;
+    bool m_valid;
     QKeySequence m_sequence;
 };
 
@@ -70,6 +74,7 @@ public:
     ShortcutKeySequenceEditContainer(const QKeySequence &sequence, QWidget *parent = 0);
 
     QKeySequence sequence() const;
+    ShortcutKeySequenceEdit *sequenceEdit() const;
 
 private:
     ShortcutKeySequenceEdit *m_edit;
@@ -80,18 +85,20 @@ class ShortcutDialog : public QDialog
     Q_OBJECT
 
 public:
-    ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, QWidget *parent = 0);
+    ShortcutDialog(const QString &name, const QList<QKeySequence> &sequences, const QHash<QString, Shortcuts::Action> &used, QWidget *parent = 0);
 
     QList<QKeySequence> sequences() const;
 
 private slots:
     void add();
     void remove();
+    void shortcutChanged();
 
 private:
     ShortcutKeySequenceEditContainer *makeContainer(const QKeySequence &sequence);
 
     QVBoxLayout *m_layout;
+    QHash<QString, Shortcuts::Action> m_used;
 };
 
 class ShortcutEditorModel : public QAbstractItemModel
