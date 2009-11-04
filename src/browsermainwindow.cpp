@@ -460,20 +460,20 @@ void BrowserMainWindow::setupMenu()
     menuBar()->addMenu(m_fileMenu);
 
     m_fileNewWindowAction = new QAction(m_fileMenu);
-    m_fileNewWindowAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NewWindow));
+    m_fileNewWindowAction->setShortcuts(SHORTCUTS(NewWindow));
     connect(m_fileNewWindowAction, SIGNAL(triggered()),
             this, SLOT(fileNew()));
     m_fileMenu->addAction(m_fileNewWindowAction);
     m_fileMenu->addAction(m_tabWidget->newTabAction());
 
     m_fileOpenFileAction = new QAction(m_fileMenu);
-    m_fileOpenFileAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::OpenFile));
+    m_fileOpenFileAction->setShortcuts(SHORTCUTS(OpenFile));
     connect(m_fileOpenFileAction, SIGNAL(triggered()),
             this, SLOT(fileOpen()));
     m_fileMenu->addAction(m_fileOpenFileAction);
 
     m_fileOpenLocationAction = new QAction(m_fileMenu);
-    m_fileOpenLocationAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::OpenLocation));
+    m_fileOpenLocationAction->setShortcuts(SHORTCUTS(OpenLocation));
     connect(m_fileOpenLocationAction, SIGNAL(triggered()),
             this, SLOT(selectLineEdit()));
     m_fileMenu->addAction(m_fileOpenLocationAction);
@@ -483,7 +483,7 @@ void BrowserMainWindow::setupMenu()
     m_fileMenu->addSeparator();
 
     m_fileSaveAsAction = new QAction(m_fileMenu);
-    m_fileSaveAsAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::SaveAs));
+    m_fileSaveAsAction->setShortcuts(SHORTCUTS(SaveAs));
     connect(m_fileSaveAsAction, SIGNAL(triggered()),
             this, SLOT(fileSaveAs()));
     m_fileMenu->addAction(m_fileSaveAsAction);
@@ -506,14 +506,14 @@ void BrowserMainWindow::setupMenu()
     m_fileMenu->addAction(m_filePrintPreviewAction);
 
     m_filePrintAction = new QAction(m_fileMenu);
-    m_filePrintAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::Print));
+    m_filePrintAction->setShortcuts(SHORTCUTS(Print));
     connect(m_filePrintAction, SIGNAL(triggered()),
             this, SLOT(filePrint()));
     m_fileMenu->addAction(m_filePrintAction);
     m_fileMenu->addSeparator();
 
     m_filePrivateBrowsingAction = new QAction(m_fileMenu);
-    m_filePrivateBrowsingAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PrivateBrowsing));
+    m_filePrivateBrowsingAction->setShortcuts(SHORTCUTS(PrivateBrowsing));
     connect(m_filePrivateBrowsingAction, SIGNAL(triggered()),
             this, SLOT(privateBrowsing()));
     m_filePrivateBrowsingAction->setCheckable(true);
@@ -522,7 +522,7 @@ void BrowserMainWindow::setupMenu()
 
     m_fileCloseWindow = new QAction(m_fileMenu);
     connect(m_fileCloseWindow, SIGNAL(triggered()), this, SLOT(close()));
-    m_fileCloseWindow->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::CloseWindow));
+    m_fileCloseWindow->setShortcuts(SHORTCUTS(CloseWindow));
     m_fileMenu->addAction(m_fileCloseWindow);
 
     m_fileQuit = new QAction(m_fileMenu);
@@ -612,12 +612,12 @@ void BrowserMainWindow::setupMenu()
     addAction(m_viewShowMenuBarAction);
 
     m_viewToolbarAction = new QAction(this);
-    m_viewToolbarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewToolbar));
+    m_viewToolbarAction->setShortcuts(SHORTCUTS(ViewToolbar));
     connect(m_viewToolbarAction, SIGNAL(triggered()), this, SLOT(viewToolbar()));
     m_viewMenu->addAction(m_viewToolbarAction);
 
     m_viewBookmarkBarAction = new QAction(m_viewMenu);
-    m_viewBookmarkBarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewBookmarsBar));
+    m_viewBookmarkBarAction->setShortcuts(SHORTCUTS(ViewBookmarsBar));
     connect(m_viewBookmarkBarAction, SIGNAL(triggered()), this, SLOT(viewBookmarksBar()));
     m_viewMenu->addAction(m_viewBookmarkBarAction);
 
@@ -627,36 +627,36 @@ void BrowserMainWindow::setupMenu()
             m_autoSaver, SLOT(changeOccurred()));
 
     m_viewStatusbarAction = new QAction(m_viewMenu);
-    m_viewStatusbarAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ViewStatusBar));
+    m_viewStatusbarAction->setShortcuts(SHORTCUTS(ViewStatusBar));
     connect(m_viewStatusbarAction, SIGNAL(triggered()), this, SLOT(viewStatusbar()));
     m_viewMenu->addAction(m_viewStatusbarAction);
 
     m_viewMenu->addSeparator();
 
     m_viewStopAction = new QAction(m_viewMenu);
-    m_viewStopAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::Stop));
+    m_viewStopAction->setShortcuts(SHORTCUTS(Stop));
     m_tabWidget->addWebAction(m_viewStopAction, QWebPage::Stop);
     m_viewMenu->addAction(m_viewStopAction);
 
     m_viewReloadAction = new QAction(m_viewMenu);
-    m_viewReloadAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ReloadPage));
+    m_viewReloadAction->setShortcuts(SHORTCUTS(ReloadPage));
     m_tabWidget->addWebAction(m_viewReloadAction, QWebPage::Reload);
     m_viewMenu->addAction(m_viewReloadAction);
 
     m_viewZoomInAction = new QAction(m_viewMenu);
-    m_viewZoomInAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomIn));
+    m_viewZoomInAction->setShortcuts(SHORTCUTS(ZoomIn));
     connect(m_viewZoomInAction, SIGNAL(triggered()),
             this, SLOT(zoomIn()));
     m_viewMenu->addAction(m_viewZoomInAction);
 
     m_viewZoomNormalAction = new QAction(m_viewMenu);
-    m_viewZoomNormalAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomNormal));
+    m_viewZoomNormalAction->setShortcuts(SHORTCUTS(ZoomNormal));
     connect(m_viewZoomNormalAction, SIGNAL(triggered()),
             this, SLOT(zoomNormal()));
     m_viewMenu->addAction(m_viewZoomNormalAction);
 
     m_viewZoomOutAction = new QAction(m_viewMenu);
-    m_viewZoomOutAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ZoomOut));
+    m_viewZoomOutAction->setShortcuts(SHORTCUTS(ZoomOut));
     connect(m_viewZoomOutAction, SIGNAL(triggered()),
             this, SLOT(zoomOut()));
     m_viewMenu->addAction(m_viewZoomOutAction);
@@ -670,7 +670,7 @@ void BrowserMainWindow::setupMenu()
     m_viewMenu->addAction(m_viewZoomTextOnlyAction);
 
     m_viewFullScreenAction = new QAction(m_viewMenu);
-    m_viewFullScreenAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::FullScreen));
+    m_viewFullScreenAction->setShortcuts(SHORTCUTS(FullScreen));
     connect(m_viewFullScreenAction, SIGNAL(triggered(bool)),
             this, SLOT(viewFullScreen(bool)));
     m_viewFullScreenAction->setCheckable(true);
@@ -717,21 +717,21 @@ void BrowserMainWindow::setupMenu()
 
     m_historyBackAction = new QAction(this);
     m_tabWidget->addWebAction(m_historyBackAction, QWebPage::Back);
-    m_historyBackAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryBack));
+    m_historyBackAction->setShortcuts(SHORTCUTS(HistoryBack));
 #if QT_VERSION < 0x040600 || (QT_VERSION >= 0x040600 && !defined(Q_WS_X11))
     m_historyBackAction->setIconVisibleInMenu(false);
 #endif
 
     m_historyForwardAction = new QAction(this);
     m_tabWidget->addWebAction(m_historyForwardAction, QWebPage::Forward);
-    m_historyForwardAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryForward));
+    m_historyForwardAction->setShortcuts(SHORTCUTS(HistoryForward));
 #if QT_VERSION < 0x040600 || (QT_VERSION >= 0x040600 && !defined(Q_WS_X11))
     m_historyForwardAction->setIconVisibleInMenu(false);
 #endif
 
     m_historyHomeAction = new QAction(this);
     connect(m_historyHomeAction, SIGNAL(triggered()), this, SLOT(goHome()));
-    m_historyHomeAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::HistoryHome));
+    m_historyHomeAction->setShortcuts(SHORTCUTS(HistoryHome));
 
     m_historyRestoreLastSessionAction = new QAction(this);
     connect(m_historyRestoreLastSessionAction, SIGNAL(triggered()),
@@ -758,7 +758,7 @@ void BrowserMainWindow::setupMenu()
     menuBar()->addMenu(m_bookmarksMenu);
 
     m_bookmarksShowAllAction = new QAction(this);
-    m_bookmarksShowAllAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ShowAllBookmarks));
+    m_bookmarksShowAllAction->setShortcuts(SHORTCUTS(ShowAllBookmarks));
     connect(m_bookmarksShowAllAction, SIGNAL(triggered()),
             this, SLOT(showBookmarksDialog()));
 
@@ -769,7 +769,7 @@ void BrowserMainWindow::setupMenu()
 #endif
     connect(m_bookmarksAddAction, SIGNAL(triggered()),
             this, SLOT(addBookmark()));
-    m_bookmarksAddAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::AddBookmark));
+    m_bookmarksAddAction->setShortcuts(SHORTCUTS(AddBookmark));
 
     m_bookmarksAddFolderAction = new QAction(this);
     connect(m_bookmarksAddFolderAction, SIGNAL(triggered()),
@@ -958,7 +958,7 @@ void BrowserMainWindow::retranslate()
     m_viewZoomOutAction->setText(tr("Zoom &Out"));
     m_viewZoomTextOnlyAction->setText(tr("Zoom &Text Only"));
     m_viewSourceAction->setText(tr("Page S&ource"));
-    m_viewSourceAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PageSource));
+    m_viewSourceAction->setShortcuts(SHORTCUTS(PageSource));
     m_viewFullScreenAction->setText(tr("&Full Screen"));
 #if QT_VERSION >= 0x040600 || defined(WEBKIT_TRUNK)
     m_viewTextEncodingAction->setText(tr("Text Encoding"));
@@ -979,18 +979,20 @@ void BrowserMainWindow::retranslate()
 
     m_toolsMenu->setTitle(tr("&Tools"));
     m_toolsWebSearchAction->setText(tr("Web &Search"));
-    m_toolsWebSearchAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::WebSearch));
+    m_toolsWebSearchAction->setShortcuts(SHORTCUTS(WebSearch));
     m_toolsClearPrivateDataAction->setText(tr("&Clear Private Data"));
-    m_toolsClearPrivateDataAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::ClearPrivateData));
+    m_toolsClearPrivateDataAction->setShortcuts(SHORTCUTS(ClearPrivateData));
     m_toolsEnableInspectorAction->setText(tr("Enable Web &Inspector"));
+	m_toolsEnableInspectorAction->setShortcuts(SHORTCUTS(EnableWebInspector));
     m_toolsPreferencesAction->setText(tr("Options..."));
-    m_toolsPreferencesAction->setShortcut(tr("Ctrl+,"));
+    m_toolsPreferencesAction->setShortcuts(SHORTCUTS(Preferences));
     m_toolsSearchManagerAction->setText(tr("Configure Search Engines..."));
     m_adBlockDialogAction->setText(tr("&Ad Block..."));
+	m_adBlockDialogAction->setShortcuts(SHORTCUTS(AdBlock));
 
     m_helpMenu->setTitle(tr("&Help"));
     m_helpChangeLanguageAction->setText(tr("Switch application language "));
-    m_helpChangeLanguageAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::SwitchAppLanguage));
+    m_helpChangeLanguageAction->setShortcuts(SHORTCUTS(SwitchAppLanguage));
     m_helpAboutQtAction->setText(tr("About &Qt"));
     m_helpAboutApplicationAction->setText(tr("About &%1", "About Browser").arg(QApplication::applicationName()));
 

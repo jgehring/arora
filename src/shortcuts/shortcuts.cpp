@@ -87,6 +87,7 @@ QString Shortcuts::shortcutName(Action action)
     case ClearPrivateData:      return QLatin1String("ClearPrivateData");
     case ShowNetworkMonitor:    return QLatin1String("ShowNetworkMonitor");
     case EnableWebInspector:    return QLatin1String("EnableWebInspector");
+	case AdBlock:               return QLatin1String("AdBlock");
     case SwitchAppLanguage:     return QLatin1String("SwitchAppLanguage");
     default: break;
     }
@@ -339,6 +340,7 @@ void Shortcuts::createDefaultSchemes()
     //
     //  - PrivateBrowsing
     //  - EnableWebInspector
+	//  - AdBlock
     //  - SwitchAppLanguage
     //  - ViewToolbar
     //  - ViewBookmarksBar

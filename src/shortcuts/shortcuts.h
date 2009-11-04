@@ -24,6 +24,9 @@
 #include <qkeysequence.h>
 #include <qobject.h>
 
+// Ugly but convenience shortcut access macro
+#define SHORTCUTS(x) Shortcuts::shortcutsFor(Shortcuts::x)
+
 class Shortcuts : public QObject
 {
     friend class SettingsDialog;
@@ -74,6 +77,7 @@ public:
         ClearPrivateData,
         ShowNetworkMonitor,
         EnableWebInspector,
+		AdBlock,
         SwitchAppLanguage,  // Help
         _NumActions
     };

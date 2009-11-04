@@ -135,7 +135,7 @@ TabWidget::TabWidget(QWidget *parent)
 
     // Actions
     m_newTabAction = new QAction(this);
-    m_newTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NewTab));
+    m_newTabAction->setShortcuts(SHORTCUTS(NewTab));
     connect(m_newTabAction, SIGNAL(triggered()), this, SLOT(newTab()));
 
     m_closeTabAction = new QAction(this);
@@ -147,7 +147,7 @@ TabWidget::TabWidget(QWidget *parent)
     connect(m_closeTabAction, SIGNAL(triggered()), this, SLOT(closeTab()));
 
     m_bookmarkTabsAction = new QAction(this);
-    m_bookmarkTabsAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::BookmarkAllTabs));
+    m_bookmarkTabsAction->setShortcuts(SHORTCUTS(BookmarkAllTabs));
     connect(m_bookmarkTabsAction, SIGNAL(triggered()), this, SLOT(bookmarkTabs()));
 
     m_newTabAction->setIcon(QIcon(QLatin1String(":graphics/addtab.png")));
@@ -811,9 +811,9 @@ void TabWidget::aboutToShowRecentTriggeredAction(QAction *action)
 void TabWidget::retranslate()
 {
     m_nextTabAction->setText(tr("Show Next Tab"));
-    m_nextTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::NextTab));
+    m_nextTabAction->setShortcuts(SHORTCUTS(NextTab));
     m_previousTabAction->setText(tr("Show Previous Tab"));
-    m_previousTabAction->setShortcuts(Shortcuts::shortcutsFor(Shortcuts::PreviousTab));
+    m_previousTabAction->setShortcuts(SHORTCUTS(PreviousTab));
     m_recentlyClosedTabsAction->setText(tr("Recently Closed Tabs"));
     m_newTabAction->setText(tr("New &Tab"));
     m_closeTabAction->setText(tr("&Close Tab"));
